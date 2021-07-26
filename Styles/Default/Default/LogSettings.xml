@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<LogSettings>
+
+  <Texture>
+    <iconInfo></iconInfo>
+    <iconWarn></iconWarn>
+    <iconError></iconError>
+    <iconInfoSmall></iconInfoSmall>
+    <iconWarnSmall></iconWarnSmall>
+    <iconErrorSmall></iconErrorSmall>
+    <iconFirstErrorSmall></iconFirstErrorSmall>
+
+    <iconInfoMono></iconInfoMono>
+    <iconWarnMono></iconWarnMono>
+    <iconErrorMono></iconErrorMono>
+    <iconFirstErrorMono></iconFirstErrorMono>
+    <iconCustomFiltersMono></iconCustomFiltersMono>
+  </Texture>
+
+  <AdditionalTexture>
+    
+  </AdditionalTexture>
+</LogSettings>

@@ -1,60 +1,42 @@
-﻿using System.Collections;
+﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
-using System.Drawing;
 
 namespace ConsoleTiny
 {
     public class ConsoleParameters
     {
-        private static ConsoleParameters instence;
-        private ConsoleParameters() { Init(); }
-        private static ConsoleParameters Instence { get { if (instence == null) instence = new ConsoleParameters(); return instence; } }
+        #region StyleFile
+        Dictionary<string, ValueTuple<ConsoleStyle, Dictionary<string, LogStyle>>> StyleList;
 
-        #region PrivateState
-        private string consoleStyle;
-        private string logStyle;
+        public void LoadStyle()
+        {
+
+        }
+
+        public void RefreshStyle()
+        {
+
+        }
         #endregion
 
+        static ConsoleStyle consoleStyle;
+        static LogStyle logStyle;
 
-        public void Init()
+        static ConsoleStyle defaultConsoleStyle;
+        static LogStyle defaultLogStyle;
+
+        public void LoadConfig()
         {
-            GUIStyle msessageStyle = new GUIStyle("CN Message");
+            GUIStyle msessageStyle = new GUIStyle("");
             msessageStyle.onNormal.textColor = msessageStyle.active.textColor;
             msessageStyle.padding.top = 0;
             msessageStyle.padding.bottom = 0;
             var selectedStyle = new GUIStyle("MeTransitionSelect");
             msessageStyle.onNormal.background = selectedStyle.normal.background;
-
-
-            DefaultGUIStyleList = new Dictionary<string, GUIStyle>()
-            {
-                { "Box","CN Box" },
-                { "MiniButton","ToolbarButton" },
-                { "Toolbar","Toolbar" },
-                { "LogStyle","CN EntryInfo" },
-                { "WarningStyle","CN EntryWarn" },
-                { "ErrorStyle","CN EntryError" },
-                { "IconLogStyle","CN EntryInfoIcon" },
-                { "IconWarningStyle","CN EntryWarnIcon" },
-                { "IconErrorStyle","CN EntryErrorIcon" },
-                { "EvenBackground","CN EntryBackEven" },
-                { "OddBackground","CN EntryBackodd" },
-                { "MsessageStyle",msessageStyle},
-                { "StatusError","CN StatusError" },
-                { "StatusWarn","CN StatusWarn" },
-                { "StatusLog","CN StatusInfo" },
-                { "CountBadge","CN CountBadge" },
-                { "LogSmallStyle","CN EntryInfoSmall" },
-                { "WarningSmallStyle","CN EntryWarnSmall" },
-                { "ErrorSmallStyle","CN EntryErrorSmall" },
-                { "IconLogSmallStyle","CN EntryInfoIconSmall" },
-                { "IconWarningSmallStyle","CN EntryWarnIconSmall" },
-                { "IconErrorSmallStyle","CN EntryErrorIconSmall" },
-            };
-
 
 
             iconInfo = EditorGUIUtility.LoadIcon("console.infoicon");
@@ -105,9 +87,22 @@ namespace ConsoleTiny
             LogStyleLineCount = EditorPrefs.GetInt("ConsoleWindowLogLineCount", 2);//强制读取消息行数，因为如果控制台没有打开，则其行数始终为0
         }
 
+        private Texture2D LoadTexture(string imgPath)
+        {
+            FileStream fileStream = new FileStream(imgPath, FileMode.Open, FileAccess.Read);
+            byte[] imgBytes = new byte[fileStream.Length]; //创建文件长度的buffer
+            fileStream.Read(imgBytes, 0, (int)fileStream.Length);
+            fileStream.Close();
+            fileStream.Dispose();
+            fileStream = null;
+            Image img = Image.FromStream(new MemoryStream(imgBytes));
+            Texture2D texture = new Texture2D(img.Width, img.Height);
+            texture.LoadImage(imgBytes);
+            return texture;
+        }
 
 
-
+        #region static
 
         #region Const
         public const string ClearLabel = "Clear";
@@ -122,11 +117,6 @@ namespace ConsoleTiny
         #endregion
 
         #region GUIStyle
-        private static Dictionary<string, GUIStyle> GUIStyleList;
-        private static Dictionary<string, GUIStyle> DefaultGUIStyleList;
-
-
-
         public static GUIStyle Box { get { return GetGUIStyle("Box"); } }
         public static GUIStyle MiniButton { get { return GetGUIStyle("MiniButton"); } }
         public static GUIStyle Toolbar { get { return GetGUIStyle("Toolbar"); } }
@@ -150,21 +140,19 @@ namespace ConsoleTiny
         public static GUIStyle IconWarningSmallStyle { get { return GetGUIStyle("IconWarningSmallStyle"); } }
         public static GUIStyle IconErrorSmallStyle { get { return GetGUIStyle("IconErrorSmallStyle"); } }
 
-        private static GUIStyle GetGUIStyle(string name)
+        private static GUIStyle GetGUIStyle(string styleName)
         {
-            if (GUIStyleList != null && GUIStyleList.ContainsKey(name))
+            GUIStyle style = consoleStyle.GetGUIStyle(styleName);
+            if (style == null)
             {
-                return GUIStyleList[name];
+                style = defaultConsoleStyle.GetGUIStyle(styleName);
             }
-            return DefaultGUIStyleList[name];
+            return style;
         }
         #endregion
 
 
         #region Color
-
-
-
         public static string colorNamespace, colorNamespaceAlpha;
         public static string colorClass, colorClassAlpha;
         public static string colorMethod, colorMethodAlpha;
@@ -200,11 +188,11 @@ namespace ConsoleTiny
         {
             if (ConsoleIconList != null && ConsoleIconList.ContainsKey(logType))
             {
-                return ConsoleIconList[logType][Random.Range(0, ConsoleIconList[logType].Count)];
+                return ConsoleIconList[logType][UnityEngine.Random.Range(0, ConsoleIconList[logType].Count)];
             }
             if (DefaultConsoleIconList != null && DefaultConsoleIconList.ContainsKey(logType))
             {
-                return DefaultConsoleIconList[logType][Random.Range(0, ConsoleIconList[logType].Count)];
+                return DefaultConsoleIconList[logType][UnityEngine.Random.Range(0, ConsoleIconList[logType].Count)];
 
             }
             return null;
@@ -222,52 +210,35 @@ namespace ConsoleTiny
                 LogEntries.wrapped.numberOfLines = value;
 
                 // If Constants hasn't been initialized yet we just skip this for now
-                // and let Init() call this for us in a bit.
-                if (!loadAlready)
-                    return;
-                UpdateLogStyleFixedHeights();
+                //If Constants hasn't been initialized yet we just skip this for now and let Init() call this for us in a bit.
+                //if (!Instence.loadAlready)
+                //    return;
+                //UpdateLogStyleFixedHeights();
             }
         }
         #endregion 
 
-        public static void LoadConsoleStyle(string style)
+        public void LoadSytle(string consoleStyleName, string logStyleName)
         {
-            if (consoleStyle == style)
-            {
+            if (consoleStyleName == consoleStyle.StyleName && logStyleName == logStyle.StyleName)
                 return;
-            }
-        }
-
-        public static void LoadLogSytle(string style)
-        {
-            if (style == logStyle)
+            if (consoleStyleName != consoleStyle.StyleName)
             {
-                return;
+                consoleStyle = StyleList[consoleStyleName].Item1;
             }
 
+            logStyle = StyleList[consoleStyleName].Item2[logStyleName];
         }
 
         private static void UpdateLogStyleFixedHeights()
         {
-            // Whenever we change the line height count or the styles are set we need to update the fixed height
-            // of the following GuiStyles so the entries do not get cropped incorrectly.
+            // Whenever we change the line height count or the styles are set we need to update the fixed height of the following GuiStyles so the entries do not get cropped incorrectly.
             ErrorStyle.fixedHeight = (LogStyleLineCount * ErrorStyle.lineHeight) + ErrorStyle.border.top;
             WarningStyle.fixedHeight = (LogStyleLineCount * WarningStyle.lineHeight) + WarningStyle.border.top;
             LogStyle.fixedHeight = (LogStyleLineCount * LogStyle.lineHeight) + LogStyle.border.top;
         }
 
-        private static Texture2D LoadTexture(string imgPath)
-        {
-            FileStream fileStream = new FileStream(imgPath, FileMode.Open, FileAccess.Read);
-            byte[] imgBytes = new byte[fileStream.Length]; //创建文件长度的buffer
-            fileStream.Read(imgBytes, 0, (int)fileStream.Length);
-            fileStream.Close();
-            fileStream.Dispose();
-            fileStream = null;
-            Image img = Image.FromStream(new MemoryStream(imgBytes));
-            Texture2D texture = new Texture2D(img.Width, img.Height);
-            texture.LoadImage(imgBytes);
-            return texture;
-        }
+
     }
+    #endregion 
 }

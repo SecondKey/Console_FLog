@@ -206,7 +206,8 @@ namespace ConsoleTiny
             {
                 return LogSmallStyle;
             }
-            return LogStyle;
+
+            return ConsoleParameters.LogStyle;
         }
 
         void SetActiveEntry(int selectedIndex)
@@ -238,7 +239,6 @@ namespace ConsoleTiny
         }
         void OnGUI()
         {
-            Init();
 
             Event e = Event.current;
             UpdateListView();

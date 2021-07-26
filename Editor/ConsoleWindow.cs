@@ -14,14 +14,39 @@ using static ConsoleTiny.ConsoleParameters;
 
 namespace ConsoleTiny
 {
+    /// <summary>
+    /// 调试模式
+    /// </summary>
+    [Flags]
     public enum ConsoleFlags
     {
+        /// <summary>
+        /// 折叠
+        /// </summary>
         Collapse = 1 << 0,
+        /// <summary>
+        /// 开始时清空
+        /// </summary>
         ClearOnPlay = 1 << 1,
+        /// <summary>
+        /// 报错暂停
+        /// </summary>
         ErrorPause = 1 << 2,
+        /// <summary>
+        /// 详细模式
+        /// </summary>
         Verbose = 1 << 3,
+        /// <summary>
+        /// 维护停止
+        /// </summary>
         StopForAssert = 1 << 4,
+        /// <summary>
+        /// 报错停止
+        /// </summary>
         StopForError = 1 << 5,
+        /// <summary>
+        /// 自动滚动
+        /// </summary>
         Autoscroll = 1 << 6,
         LogLevelLog = 1 << 7,
         LogLevelWarning = 1 << 8,
@@ -34,18 +59,33 @@ namespace ConsoleTiny
     [EditorWindowTitle(title = "Console", useTypeNameAsIconName = true)]
     public class ConsoleWindow : EditorWindow, IHasCustomMenu
     {
+        /// <summary>
+        /// 打开控制台
+        /// </summary>
         [MenuItem("Window/General/ConsoleT %#t", false, 7)]
         static void ShowConsole()
         {
             GetWindow<ConsoleWindow>();
         }
 
+        /// <summary>
+        /// 行高
+        /// </summary>
         int m_LineHeight;
+        /// <summary>
+        /// 边框高度
+        /// </summary>
         int m_BorderHeight;
 
         bool m_HasUpdatedGuiStyles = false;
 
+        /// <summary>
+        /// 
+        /// </summary>
         ListViewState m_ListView;
+        /// <summary>
+        /// 
+        /// </summary>
         ListViewState m_ListViewMessage;
         private int m_StacktraceLineContextClickRow;
         private int m_ActiveInstanceID = 0;
@@ -769,9 +809,9 @@ namespace ConsoleTiny
 
     internal class CustomFiltersItemProvider : IFlexibleMenuItemProvider
     {
-        private readonly LogEntries.EntryWrapped.CustomFiltersGroup m_Groups;
+        private readonly EntryWrapped.CustomFiltersGroup m_Groups;
 
-        public CustomFiltersItemProvider(LogEntries.EntryWrapped.CustomFiltersGroup groups)
+        public CustomFiltersItemProvider(EntryWrapped.CustomFiltersGroup groups)
         {
             m_Groups = groups;
         }
@@ -788,7 +828,7 @@ namespace ConsoleTiny
 
         public int Add(object obj)
         {
-            m_Groups.filters.Add(new LogEntries.EntryWrapped.CustomFiltersItem() { filter = (string)obj, changed = false });
+            m_Groups.filters.Add(new EntryWrapped.CustomFiltersItem() { filter = (string)obj, changed = false });
             m_Groups.Save();
             return Count() - 1;
         }

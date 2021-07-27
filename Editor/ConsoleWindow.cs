@@ -8,14 +8,13 @@ using ConnectionGUILayout = UnityEditor.Experimental.Networking.PlayerConnection
 using EditorGUI = UnityEditor.EditorGUI;
 using EditorGUILayout = UnityEditor.EditorGUILayout;
 using EditorGUIUtility = UnityEditor.EditorGUIUtility;
-using CoreLog = UnityEditor;
 using System.IO;
 using static ConsoleTiny.ConsoleParameters;
 
 namespace ConsoleTiny
 {
     /// <summary>
-    /// 调试模式
+    /// 控制台输出模式，这里的标记和Unity控制台的标记时一致的
     /// </summary>
     [Flags]
     public enum ConsoleFlags
@@ -52,6 +51,9 @@ namespace ConsoleTiny
         LogLevelWarning = 1 << 8,
         LogLevelError = 1 << 9,
         ShowTimestamp = 1 << 10,
+        /// <summary>
+        /// 在编译时清空
+        /// </summary>
         ClearOnBuild = 1 << 11,
     };
 
@@ -80,11 +82,11 @@ namespace ConsoleTiny
         bool m_HasUpdatedGuiStyles = false;
 
         /// <summary>
-        /// 
+        /// 显示信息列表
         /// </summary>
         ListViewState m_ListView;
         /// <summary>
-        /// 
+        /// 信息详情列表
         /// </summary>
         ListViewState m_ListViewMessage;
         private int m_StacktraceLineContextClickRow;
@@ -103,6 +105,14 @@ namespace ConsoleTiny
 
         static ConsoleWindow ms_ConsoleWindow = null;
 
+        private int RowHeight
+        {
+            get
+            {
+                return (LogStyleLineCount * m_LineHeight) + m_BorderHeight;
+            }
+        }
+
         public void DoLogChanged(string logString, string stackTrace, LogType type)
         {
             if (ms_ConsoleWindow == null)
@@ -110,6 +120,7 @@ namespace ConsoleTiny
 
             ms_ConsoleWindow.m_NextRepaint = EditorApplication.timeSinceStartup + 0.25f;
         }
+
 
         public ConsoleWindow()
         {
@@ -124,8 +135,6 @@ namespace ConsoleTiny
             if (m_ConsoleAttachToPlayerState == null)
                 m_ConsoleAttachToPlayerState = new ConsoleAttachToPlayerState(this);
 
-            MakeSureConsoleAlwaysOnlyOne();
-
             titleContent = EditorGUIUtility.TextContentWithIcon("Console", "UnityEditor.ConsoleWindow");
             titleContent = new GUIContent(titleContent) { text = "ConsoleT" };
             ms_ConsoleWindow = this;
@@ -136,19 +145,6 @@ namespace ConsoleTiny
             Application.logMessageReceived += DoLogChanged;
         }
 
-        void MakeSureConsoleAlwaysOnlyOne()
-        {
-            // make sure that console window is always open as only one.
-            if (ms_ConsoleWindow != null)
-            {
-                // get the container window of this console window.
-                ContainerWindow cw = ms_ConsoleWindow.m_Parent.window;
-
-                // the container window must not be main view(prevent from quitting editor).
-                if (cw.rootView.GetType() != typeof(MainView))
-                    cw.Close();
-            }
-        }
 
         void OnDisable()
         {
@@ -170,28 +166,24 @@ namespace ConsoleTiny
             }
         }
 
-        private int RowHeight
+        /// <summary>
+        /// 判断控制台全部标记是否包含目标标记
+        /// </summary>
+        /// <param name="flags"></param>
+        /// <returns></returns>
+        private static bool HasFlag(ConsoleFlags flags)
         {
-            get
-            {
-                return (LogStyleLineCount * m_LineHeight) + m_BorderHeight;
-            }
+            return (UnityEditor.LogEntries.consoleFlags & (int)flags) != 0;
         }
 
-        private static bool HasFlag(ConsoleFlags flags) { return (CoreLog.LogEntries.consoleFlags & (int)flags) != 0; }
-        private static void SetFlag(ConsoleFlags flags, bool val) { CoreLog.LogEntries.SetConsoleFlag((int)flags, val); }
-
-        private static Texture2D GetIconForErrorMode(ConsoleFlags flags, bool large)
+        /// <summary>
+        /// 设置控制台标记
+        /// </summary>
+        /// <param name="flags"></param>
+        /// <param name="val"></param>
+        private static void SetFlag(ConsoleFlags flags, bool val)
         {
-
-            // Errors
-            if (flags == ConsoleFlags.LogLevelError)
-                return large ? iconError : iconErrorSmall;
-            // Warnings
-            if (flags == ConsoleFlags.LogLevelWarning)
-                return large ? iconWarn : iconWarnSmall;
-            // Logs
-            return large ? iconInfo : iconInfoSmall;
+            UnityEditor.LogEntries.SetConsoleFlag((int)flags, val);
         }
 
         private static GUIStyle GetStyleForErrorMode(ConsoleFlags flags, bool isIcon, bool isSmall)
@@ -250,6 +242,7 @@ namespace ConsoleTiny
             return ConsoleParameters.LogStyle;
         }
 
+
         void SetActiveEntry(int selectedIndex)
         {
             m_ListViewMessage.row = -1;
@@ -267,6 +260,9 @@ namespace ConsoleTiny
             }
         }
 
+        /// <summary>
+        /// 刷新列表视图
+        /// </summary>
         void UpdateListView()
         {
             m_HasUpdatedGuiStyles = true;
@@ -277,6 +273,10 @@ namespace ConsoleTiny
             m_ListView.row = -1;
             m_ListView.scrollPos.y = LogEntries.wrapped.GetCount() * newRowHeight;
         }
+
+        /// <summary>
+        /// 主要的控制台渲染在这里进行
+        /// </summary>
         void OnGUI()
         {
 
@@ -342,6 +342,7 @@ namespace ConsoleTiny
             }
 
             SetFlag(ConsoleFlags.ClearOnPlay, GUILayout.Toggle(HasFlag(ConsoleFlags.ClearOnPlay), ClearOnPlayLabel, MiniButton));
+
 #if UNITY_2019_1_OR_NEWER
             SetFlag(ConsoleFlags.ClearOnBuild, GUILayout.Toggle(HasFlag(ConsoleFlags.ClearOnBuild), Constants.ClearOnBuildLabel, Constants.MiniButton));
 #endif
@@ -428,12 +429,9 @@ namespace ConsoleTiny
                         s.Draw(el.position, true, false, isSelected, false);
 
                         // Draw the icon
-                        {
-                            GUIStyle iconStyle = GetStyleForErrorMode(flag, true, LogStyleLineCount == 1);
-                            iconStyle.fixedWidth = 100;
-                            iconStyle.Draw(el.position, false, false, isSelected, false);
-                        }
-
+                        GUIStyle iconStyle = GetStyleForErrorMode(flag, true, LogStyleLineCount == 1);
+                        iconStyle.fixedWidth = 100;
+                        iconStyle.Draw(el.position, false, false, isSelected, false);
 
 
 
@@ -606,8 +604,11 @@ namespace ConsoleTiny
             LogEntries.wrapped.searchString = options[selected];
         }
 
-        #region Stacktrace
-
+        /// <summary>
+        /// 跟踪堆栈
+        /// </summary>
+        /// <param name="e"></param>
+        /// <param name="tempContent"></param>
         private void StacktraceListView(Event e, GUIContent tempContent)
         {
             float maxWidth = LogEntries.wrapped.StacktraceListView_GetMaxWidth(tempContent, MessageStyle);
@@ -695,8 +696,6 @@ namespace ConsoleTiny
                 LogEntries.wrapped.StacktraceListView_Open(rowDoubleClicked);
             }
         }
-
-        #endregion
 
         public struct StackTraceLogTypeData
         {

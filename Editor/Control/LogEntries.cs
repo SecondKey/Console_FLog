@@ -45,6 +45,9 @@ namespace ConsoleTiny
 
     }
 
+    /// <summary>
+    /// log入口包装
+    /// </summary>
     public class EntryWrapped
     {
         [Flags]

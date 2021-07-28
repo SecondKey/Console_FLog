@@ -13,54 +13,21 @@ using static ConsoleTiny.ConsoleParameters;
 
 namespace ConsoleTiny
 {
-    /// <summary>
-    /// 控制台输出模式，这里的标记和Unity控制台的标记时一致的
-    /// </summary>
-    [Flags]
-    public enum ConsoleFlags
-    {
-        /// <summary>
-        /// 折叠
-        /// </summary>
-        Collapse = 1 << 0,
-        /// <summary>
-        /// 开始时清空
-        /// </summary>
-        ClearOnPlay = 1 << 1,
-        /// <summary>
-        /// 报错暂停
-        /// </summary>
-        ErrorPause = 1 << 2,
-        /// <summary>
-        /// 详细模式
-        /// </summary>
-        Verbose = 1 << 3,
-        /// <summary>
-        /// 维护停止
-        /// </summary>
-        StopForAssert = 1 << 4,
-        /// <summary>
-        /// 报错停止
-        /// </summary>
-        StopForError = 1 << 5,
-        /// <summary>
-        /// 自动滚动
-        /// </summary>
-        Autoscroll = 1 << 6,
-        LogLevelLog = 1 << 7,
-        LogLevelWarning = 1 << 8,
-        LogLevelError = 1 << 9,
-        ShowTimestamp = 1 << 10,
-        /// <summary>
-        /// 在编译时清空
-        /// </summary>
-        ClearOnBuild = 1 << 11,
-    };
-
-
     [EditorWindowTitle(title = "Console", useTypeNameAsIconName = true)]
     public class ConsoleWindow : EditorWindow, IHasCustomMenu
     {
+        #region Static
+
+        #endregion 
+
+
+        #region Window
+
+        /// <summary>
+        /// 单例
+        /// </summary>
+        static ConsoleWindow ms_ConsoleWindow = null;
+
         /// <summary>
         /// 打开控制台
         /// </summary>
@@ -70,91 +37,41 @@ namespace ConsoleTiny
             GetWindow<ConsoleWindow>();
         }
 
-        /// <summary>
-        /// 行高
-        /// </summary>
-        int m_LineHeight;
-        /// <summary>
-        /// 边框高度
-        /// </summary>
-        int m_BorderHeight;
-
-        bool m_HasUpdatedGuiStyles = false;
-
-        /// <summary>
-        /// 显示信息列表
-        /// </summary>
-        ListViewState m_ListView;
-        /// <summary>
-        /// 信息详情列表
-        /// </summary>
-        ListViewState m_ListViewMessage;
-        private int m_StacktraceLineContextClickRow;
-        private int m_ActiveInstanceID = 0;
-        bool m_DevBuild;
-        private string[] m_SearchHistory = new[] { "" };
-        private double m_NextRepaint = double.MaxValue;
-
-        SplitterState spl = new SplitterState(new float[] { 70, 30 }, new int[] { 32, 32 }, null);
-
-
-
-        int ms_LVHeight = 0;
-
-        IConnectionState m_ConsoleAttachToPlayerState;
-
-        static ConsoleWindow ms_ConsoleWindow = null;
-
-        private int RowHeight
+        void OnEnable()
         {
-            get
-            {
-                return (LogStyleLineCount * m_LineHeight) + m_BorderHeight;
-            }
+            ms_ConsoleWindow = this;
+            titleContent.text = "Console T";
+
+            Application.logMessageReceived += DoLogChanged;
+
+            position = new Rect(200, 200, 800, 400);
+            logListView = new ListViewState(0, 0);
+            messageListView = new ListViewState(0, 14);
+            m_StacktraceLineContextClickRow = -1;
+
+
+            if (m_ConsoleAttachToPlayerState == null)
+                m_ConsoleAttachToPlayerState = new ConsoleAttachToPlayerState(this);
+
+            m_DevBuild = Unsupported.IsDeveloperMode();
+            LogEntries.wrapped.searchHistory = m_SearchHistory;
+        }
+
+        void OnDisable()
+        {
+            Application.logMessageReceived -= DoLogChanged;
+            ms_ConsoleWindow = null;
+
+            m_ConsoleAttachToPlayerState?.Dispose();
+            m_ConsoleAttachToPlayerState = null;
+            m_SearchHistory = LogEntries.wrapped.searchHistory;
         }
 
         public void DoLogChanged(string logString, string stackTrace, LogType type)
         {
             if (ms_ConsoleWindow == null)
                 return;
-
             ms_ConsoleWindow.m_NextRepaint = EditorApplication.timeSinceStartup + 0.25f;
-        }
-
-
-        public ConsoleWindow()
-        {
-            position = new Rect(200, 200, 800, 400);
-            m_ListView = new ListViewState(0, 0);
-            m_ListViewMessage = new ListViewState(0, 14);
-            m_StacktraceLineContextClickRow = -1;
-        }
-
-        void OnEnable()
-        {
-            if (m_ConsoleAttachToPlayerState == null)
-                m_ConsoleAttachToPlayerState = new ConsoleAttachToPlayerState(this);
-
-            titleContent = EditorGUIUtility.TextContentWithIcon("Console", "UnityEditor.ConsoleWindow");
-            titleContent = new GUIContent(titleContent) { text = "ConsoleT" };
-            ms_ConsoleWindow = this;
-            m_DevBuild = Unsupported.IsDeveloperMode();
-            LogEntries.wrapped.searchHistory = m_SearchHistory;
-
-            LogStyleLineCount = EditorPrefs.GetInt("ConsoleWindowLogLineCount", 2);
-            Application.logMessageReceived += DoLogChanged;
-        }
-
-
-        void OnDisable()
-        {
-            Application.logMessageReceived -= DoLogChanged;
-
-            m_ConsoleAttachToPlayerState?.Dispose();
-            m_ConsoleAttachToPlayerState = null;
-            m_SearchHistory = LogEntries.wrapped.searchHistory;
-            if (ms_ConsoleWindow == this)
-                ms_ConsoleWindow = null;
         }
 
         void OnInspectorUpdate()
@@ -165,7 +82,62 @@ namespace ConsoleTiny
                 Repaint();
             }
         }
+        #endregion
 
+        #region Parameters
+
+        /// <summary>
+        /// 是否刷新了GUIStyle
+        /// </summary>
+        bool m_HasUpdatedGuiStyles = false;
+
+        /// <summary>
+        /// 显示信息列表
+        /// </summary>
+        ListViewState logListView;
+        /// <summary>
+        /// 信息详情列表
+        /// </summary>
+        ListViewState messageListView;
+
+        bool m_DevBuild;
+        private string[] m_SearchHistory = new[] { "" };
+
+        private double m_NextRepaint = double.MaxValue;
+
+        SplitterState spl = new SplitterState(new float[] { 70, 30 }, new int[] { 32, 32 }, null);
+
+        int ms_LVHeight = 0;
+
+        IConnectionState m_ConsoleAttachToPlayerState;
+
+        #endregion
+
+        #region Style
+
+        /// <summary>
+        /// 行高
+        /// </summary>
+        int m_LineHeight;
+        /// <summary>
+        /// 边框高度
+        /// </summary>
+        int m_BorderHeight;
+
+        /// <summary>
+        /// log列表行高
+        /// </summary>
+        private int RowHeight => (LogStyleLineCount * m_LineHeight) + m_BorderHeight;
+
+        #endregion
+
+
+
+
+
+
+
+        #region Tools
         /// <summary>
         /// 判断控制台全部标记是否包含目标标记
         /// </summary>
@@ -186,6 +158,13 @@ namespace ConsoleTiny
             UnityEditor.LogEntries.SetConsoleFlag((int)flags, val);
         }
 
+        /// <summary>
+        /// 获取目标GUIStyle
+        /// </summary>
+        /// <param name="flags"></param>
+        /// <param name="isIcon"></param>
+        /// <param name="isSmall"></param>
+        /// <returns></returns>
         private static GUIStyle GetStyleForErrorMode(ConsoleFlags flags, bool isIcon, bool isSmall)
         {
             // Errors
@@ -242,11 +221,37 @@ namespace ConsoleTiny
             return ConsoleParameters.LogStyle;
         }
 
+        /// <summary>
+        /// 刷新列表视图
+        /// </summary>
+        void UpdateListView()
+        {
+            m_HasUpdatedGuiStyles = true;
+            int newRowHeight = RowHeight;
 
+            // We reset the scroll list to auto scrolling whenever the log entry count is modified
+            logListView.rowHeight = 32;
+            logListView.row = -1;
+            logListView.scrollPos.y = LogEntries.wrapped.GetCount() * newRowHeight;
+        }
+        #endregion 
+
+
+        #region 点击索引到游戏物体
+        /// <summary>
+        /// 上一个选中的索引
+        /// </summary>
+        private int m_ActiveInstanceID = 0;
+
+        /// <summary>
+        /// 设置点击入口，如果该输出包含游戏物体信息，选中输出目标消息的游戏物体
+        /// 如果反复选择同一个输出，或目标游戏物体相同，则不会重复选择
+        /// </summary>
+        /// <param name="selectedIndex">选中的信息的id</param>
         void SetActiveEntry(int selectedIndex)
         {
-            m_ListViewMessage.row = -1;
-            m_ListViewMessage.scrollPos.y = 0;
+            messageListView.row = -1;
+            messageListView.scrollPos.y = 0;
             if (selectedIndex != -1)
             {
                 var instanceID = LogEntries.wrapped.SetSelectedEntry(selectedIndex);
@@ -259,29 +264,15 @@ namespace ConsoleTiny
                 }
             }
         }
+        #endregion
 
-        /// <summary>
-        /// 刷新列表视图
-        /// </summary>
-        void UpdateListView()
-        {
-            m_HasUpdatedGuiStyles = true;
-            int newRowHeight = RowHeight;
-
-            // We reset the scroll list to auto scrolling whenever the log entry count is modified
-            m_ListView.rowHeight = 32;
-            m_ListView.row = -1;
-            m_ListView.scrollPos.y = LogEntries.wrapped.GetCount() * newRowHeight;
-        }
 
         /// <summary>
         /// 主要的控制台渲染在这里进行
         /// </summary>
         void OnGUI()
         {
-
             Event e = Event.current;
-            UpdateListView();
             LogEntries.wrapped.UpdateEntries();
 
             if (!m_HasUpdatedGuiStyles)
@@ -291,7 +282,8 @@ namespace ConsoleTiny
                 UpdateListView();
             }
 
-            GUILayout.BeginHorizontal(ConsoleParameters.Toolbar);
+            #region Horizontal
+            GUILayout.BeginHorizontal(ConsoleParameters.Toolbar);//开启一个横向的布局（有点没搞懂）
 
             if (GUILayout.Button(ClearLabel, MiniButton))
             {
@@ -301,12 +293,12 @@ namespace ConsoleTiny
 
             int currCount = LogEntries.wrapped.GetCount();
 
-            if (m_ListView.totalRows != currCount && m_ListView.totalRows > 0)
+            if (logListView.totalRows != currCount && logListView.totalRows > 0)
             {
                 // scroll bar was at the bottom?
-                if (m_ListView.scrollPos.y >= m_ListView.rowHeight * m_ListView.totalRows - ms_LVHeight)
+                if (logListView.scrollPos.y >= logListView.rowHeight * logListView.totalRows - ms_LVHeight)
                 {
-                    m_ListView.scrollPos.y = currCount * RowHeight - ms_LVHeight;
+                    logListView.scrollPos.y = currCount * RowHeight - ms_LVHeight;
                 }
             }
 
@@ -322,7 +314,7 @@ namespace ConsoleTiny
                         int showCount = ms_LVHeight / RowHeight;
                         showIndex = showIndex + showCount / 2;
                     }
-                    m_ListView.scrollPos.y = showIndex * RowHeight - ms_LVHeight;
+                    logListView.scrollPos.y = showIndex * RowHeight - ms_LVHeight;
                 }
             }
 
@@ -331,14 +323,14 @@ namespace ConsoleTiny
             bool wasCollapsed = LogEntries.wrapped.collapse;
             LogEntries.wrapped.collapse = GUILayout.Toggle(wasCollapsed, CollapseLabel, MiniButton);
 
-            bool collapsedChanged = (wasCollapsed != LogEntries.wrapped.collapse);
+            bool collapsedChanged = wasCollapsed != LogEntries.wrapped.collapse;
             if (collapsedChanged)
             {
                 // unselect if collapsed flag changed
-                m_ListView.row = -1;
+                logListView.row = -1;
 
                 // scroll to bottom
-                m_ListView.scrollPos.y = LogEntries.wrapped.GetCount() * RowHeight;
+                logListView.scrollPos.y = LogEntries.wrapped.GetCount() * RowHeight;
             }
 
             SetFlag(ConsoleFlags.ClearOnPlay, GUILayout.Toggle(HasFlag(ConsoleFlags.ClearOnPlay), ClearOnPlayLabel, MiniButton));
@@ -371,9 +363,6 @@ namespace ConsoleTiny
             bool setLogFlag = GUILayout.Toggle(LogEntries.wrapped.HasFlag((int)ConsoleFlags.LogLevelLog), new GUIContent((logCount <= 999 ? logCount.ToString() : "999+"), logCount > 0 ? iconInfoSmall : iconInfoMono), MiniButton);
             bool setWarningFlag = GUILayout.Toggle(LogEntries.wrapped.HasFlag((int)ConsoleFlags.LogLevelWarning), new GUIContent((warningCount <= 999 ? warningCount.ToString() : "999+"), warningCount > 0 ? iconWarnSmall : iconWarnMono), MiniButton);
             bool setErrorFlag = GUILayout.Toggle(LogEntries.wrapped.HasFlag((int)ConsoleFlags.LogLevelError), new GUIContent((errorCount <= 999 ? errorCount.ToString() : "999+"), errorCount > 0 ? iconErrorSmall : iconErrorMono), MiniButton);
-            // Active entry index may no longer be valid
-            if (EditorGUI.EndChangeCheck())
-            { }
 
             LogEntries.wrapped.SetFlag((int)ConsoleFlags.LogLevelLog, setLogFlag);
             LogEntries.wrapped.SetFlag((int)ConsoleFlags.LogLevelWarning, setWarningFlag);
@@ -390,6 +379,8 @@ namespace ConsoleTiny
             }
 
             GUILayout.EndHorizontal();
+            #endregion
+
 
             SplitterGUILayout.BeginVerticalSplit(spl);
             int rowHeight = RowHeight;
@@ -399,16 +390,16 @@ namespace ConsoleTiny
             int rowDoubleClicked = -1;
 
             /////@TODO: Make Frame selected work with ListViewState
-            using (new GettingLogEntriesScope(m_ListView))
+            using (new GettingLogEntriesScope(logListView))
             {
                 int selectedRow = -1;
                 bool openSelectedItem = false;
                 bool collapsed = LogEntries.wrapped.collapse;
-                foreach (ListViewElement el in ListViewGUI.ListView(m_ListView, Box))
+                foreach (ListViewElement el in ListViewGUI.ListView(logListView, Box))
                 {
                     if (e.type == EventType.MouseDown && e.button == 0 && el.position.Contains(e.mousePosition))
                     {
-                        m_ListView.row = el.row;
+                        logListView.row = el.row;
                         selectedRow = el.row;
                         if (e.clickCount == 2)
                             openSelectedItem = true;
@@ -472,26 +463,26 @@ namespace ConsoleTiny
 
                 if (selectedRow != -1)
                 {
-                    if (m_ListView.scrollPos.y >= m_ListView.rowHeight * m_ListView.totalRows - ms_LVHeight)
-                        m_ListView.scrollPos.y = m_ListView.rowHeight * m_ListView.totalRows - ms_LVHeight - 1;
+                    if (logListView.scrollPos.y >= logListView.rowHeight * logListView.totalRows - ms_LVHeight)
+                        logListView.scrollPos.y = logListView.rowHeight * logListView.totalRows - ms_LVHeight - 1;
                 }
 
                 // Make sure the selected entry is up to date
-                if (m_ListView.totalRows == 0 || m_ListView.row >= m_ListView.totalRows || m_ListView.row < 0)
+                if (logListView.totalRows == 0 || logListView.row >= logListView.totalRows || logListView.row < 0)
                 {
                 }
                 else
                 {
-                    if (m_ListView.selectionChanged)
+                    if (logListView.selectionChanged)
                     {
-                        SetActiveEntry(m_ListView.row);
+                        SetActiveEntry(logListView.row);
                     }
                 }
 
                 // Open entry using return key
-                if ((GUIUtility.keyboardControl == m_ListView.ID) && (e.type == EventType.KeyDown) && (e.keyCode == KeyCode.Return) && (m_ListView.row != 0))
+                if ((GUIUtility.keyboardControl == logListView.ID) && (e.type == EventType.KeyDown) && (e.keyCode == KeyCode.Return) && (logListView.row != 0))
                 {
-                    selectedRow = m_ListView.row;
+                    selectedRow = logListView.row;
                     openSelectedItem = true;
                 }
 
@@ -550,13 +541,13 @@ namespace ConsoleTiny
                 if (e.keyCode == KeyCode.Escape)
                 {
                     searchText = string.Empty;
-                    GUIUtility.keyboardControl = m_ListView.ID;
+                    GUIUtility.keyboardControl = logListView.ID;
                     Repaint();
                 }
                 else if ((e.keyCode == KeyCode.UpArrow || e.keyCode == KeyCode.DownArrow) &&
                          GUI.GetNameOfFocusedControl() == searchBarName)
                 {
-                    GUIUtility.keyboardControl = m_ListView.ID;
+                    GUIUtility.keyboardControl = logListView.ID;
                 }
             }
 
@@ -604,6 +595,13 @@ namespace ConsoleTiny
             LogEntries.wrapped.searchString = options[selected];
         }
 
+        #region 跟踪堆栈
+        /// <summary>
+        /// 跟踪堆栈点击的行数
+        /// </summary>
+        private int m_StacktraceLineContextClickRow;
+
+
         /// <summary>
         /// 跟踪堆栈
         /// </summary>
@@ -636,28 +634,28 @@ namespace ConsoleTiny
             int rowDoubleClicked = -1;
             int selectedRow = -1;
             bool openSelectedItem = false;
-            m_ListViewMessage.totalRows = LogEntries.wrapped.StacktraceListView_GetCount();
+            messageListView.totalRows = LogEntries.wrapped.StacktraceListView_GetCount();
             GUILayout.BeginHorizontal(Box);
-            m_ListViewMessage.scrollPos = EditorGUILayout.BeginScrollView(m_ListViewMessage.scrollPos);
+            messageListView.scrollPos = EditorGUILayout.BeginScrollView(messageListView.scrollPos);
             ListViewGUI.ilvState.beganHorizontal = true;
-            m_ListViewMessage.draggedFrom = -1;
-            m_ListViewMessage.draggedTo = -1;
-            m_ListViewMessage.fileNames = (string[])null;
+            messageListView.draggedFrom = -1;
+            messageListView.draggedTo = -1;
+            messageListView.fileNames = (string[])null;
             Rect rect = GUILayoutUtility.GetRect(maxWidth,
-                (float)(m_ListViewMessage.totalRows * m_ListViewMessage.rowHeight + 3));
-            foreach (ListViewElement el in ListViewGUI.DoListView(rect, m_ListViewMessage, null, string.Empty))
+                (float)(messageListView.totalRows * messageListView.rowHeight + 3));
+            foreach (ListViewElement el in ListViewGUI.DoListView(rect, messageListView, null, string.Empty))
             {
                 if (e.type == EventType.MouseDown && (e.button == 0 || e.button == 1) && el.position.Contains(e.mousePosition))
                 {
                     if (e.button == 1)
                     {
-                        m_ListViewMessage.row = el.row;
-                        selectedRow = m_ListViewMessage.row;
+                        messageListView.row = el.row;
+                        selectedRow = messageListView.row;
                         m_StacktraceLineContextClickRow = selectedRow;
                         continue;
                     }
 
-                    selectedRow = m_ListViewMessage.row;
+                    selectedRow = messageListView.row;
                     if (e.clickCount == 2)
                         openSelectedItem = true;
                 }
@@ -669,14 +667,14 @@ namespace ConsoleTiny
                     {
                         rect.width = maxWidth;
                     }
-                    MessageStyle.Draw(rect, tempContent, id, m_ListViewMessage.row == el.row);
+                    MessageStyle.Draw(rect, tempContent, id, messageListView.row == el.row);
                 }
             }
 
             // Open entry using return key
-            if ((GUIUtility.keyboardControl == m_ListViewMessage.ID) && (e.type == EventType.KeyDown) && (e.keyCode == KeyCode.Return) && (m_ListViewMessage.row != 0))
+            if ((GUIUtility.keyboardControl == messageListView.ID) && (e.type == EventType.KeyDown) && (e.keyCode == KeyCode.Return) && (messageListView.row != 0))
             {
-                selectedRow = m_ListViewMessage.row;
+                selectedRow = messageListView.row;
                 openSelectedItem = true;
             }
 
@@ -714,6 +712,8 @@ namespace ConsoleTiny
             foreach (LogType logType in Enum.GetValues(typeof(LogType)))
                 PlayerSettings.SetStackTraceLogType(logType, (StackTraceLogType)userData);
         }
+
+        #endregion
 
         public void AddItemsToMenu(GenericMenu menu)
         {

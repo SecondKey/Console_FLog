@@ -16,10 +16,6 @@ namespace ConsoleTiny
     [EditorWindowTitle(title = "Console", useTypeNameAsIconName = true)]
     public class ConsoleWindow : EditorWindow, IHasCustomMenu
     {
-        #region Static
-
-        #endregion 
-
 
         #region Window
 
@@ -85,12 +81,6 @@ namespace ConsoleTiny
         #endregion
 
         #region Parameters
-
-        /// <summary>
-        /// 是否刷新了GUIStyle
-        /// </summary>
-        bool m_HasUpdatedGuiStyles = false;
-
         /// <summary>
         /// 显示信息列表
         /// </summary>
@@ -114,7 +104,6 @@ namespace ConsoleTiny
         #endregion
 
         #region Style
-
         /// <summary>
         /// 行高
         /// </summary>
@@ -129,6 +118,29 @@ namespace ConsoleTiny
         /// </summary>
         private int RowHeight => (LogStyleLineCount * m_LineHeight) + m_BorderHeight;
 
+        public void RefreshPageStyle()
+        {
+
+        }
+
+        /// <summary>
+        /// 刷新列表视图
+        /// </summary>
+        void UpdateListView()
+        {
+            m_LineHeight = Mathf.RoundToInt(ErrorStyle.lineHeight);
+            m_BorderHeight = ErrorStyle.border.top + ErrorStyle.border.bottom;
+            UpdateListView();
+
+            int newRowHeight = RowHeight;
+
+            // We reset the scroll list to auto scrolling whenever the log entry count is modified
+            logListView.rowHeight = 32;
+            logListView.row = -1;
+            logListView.scrollPos.y = LogEntries.wrapped.GetCount() * newRowHeight;
+
+            Repaint();
+        }
         #endregion
 
 
@@ -221,19 +233,6 @@ namespace ConsoleTiny
             return ConsoleParameters.LogStyle;
         }
 
-        /// <summary>
-        /// 刷新列表视图
-        /// </summary>
-        void UpdateListView()
-        {
-            m_HasUpdatedGuiStyles = true;
-            int newRowHeight = RowHeight;
-
-            // We reset the scroll list to auto scrolling whenever the log entry count is modified
-            logListView.rowHeight = 32;
-            logListView.row = -1;
-            logListView.scrollPos.y = LogEntries.wrapped.GetCount() * newRowHeight;
-        }
         #endregion 
 
 
@@ -275,11 +274,12 @@ namespace ConsoleTiny
             Event e = Event.current;
             LogEntries.wrapped.UpdateEntries();
 
-            if (!m_HasUpdatedGuiStyles)
+            // Copy & Paste selected item
+            if ((e.type == EventType.ValidateCommand || e.type == EventType.ExecuteCommand) && e.commandName == "Copy")
             {
-                m_LineHeight = Mathf.RoundToInt(ErrorStyle.lineHeight);
-                m_BorderHeight = ErrorStyle.border.top + ErrorStyle.border.bottom;
-                UpdateListView();
+                if (e.type == EventType.ExecuteCommand)
+                    LogEntries.wrapped.StacktraceListView_CopyAll();
+                e.Use();
             }
 
             #region Horizontal
@@ -381,7 +381,7 @@ namespace ConsoleTiny
             GUILayout.EndHorizontal();
             #endregion
 
-
+            #region Vertical
             SplitterGUILayout.BeginVerticalSplit(spl);
             int rowHeight = RowHeight;
             EditorGUIUtility.SetIconSize(new Vector2(rowHeight, rowHeight));
@@ -511,14 +511,9 @@ namespace ConsoleTiny
             StacktraceListView(e, tempContent);
 
             SplitterGUILayout.EndVerticalSplit();
+            #endregion
 
-            // Copy & Paste selected item
-            if ((e.type == EventType.ValidateCommand || e.type == EventType.ExecuteCommand) && e.commandName == "Copy")
-            {
-                if (e.type == EventType.ExecuteCommand)
-                    LogEntries.wrapped.StacktraceListView_CopyAll();
-                e.Use();
-            }
+
         }
 
         private void SearchField(Event e)

@@ -13,7 +13,7 @@ namespace ConsoleTiny
         public string lines;
         public string text;
         public string pure; // remove tag
-        public string lower;
+        public string lower;//pure的小写格式
         public int entryCount;
         public int searchIndex;
         public int searchEndIndex;
@@ -28,21 +28,14 @@ namespace ConsoleTiny
         public string plain;
         public string text;
         public string wrapper;
+        /// <summary>
+        /// 文件地址
+        /// </summary>
         public string filePath;
+        /// <summary>
+        /// 行号
+        /// </summary>
         public int lineNum;
-    }
-
-    /// <summary>
-    /// 点击log进入
-    /// </summary>
-    class LogEntries
-    {
-        public static void Clear()
-        {
-            UnityEditor.LogEntries.Clear();
-        }
-        internal static EntryWrapped wrapped = new EntryWrapped();
-
     }
 
     /// <summary>
@@ -50,6 +43,13 @@ namespace ConsoleTiny
     /// </summary>
     public class EntryWrapped
     {
+        #region 单例
+        private static EntryWrapped instence;
+        private EntryWrapped() { }
+        public static EntryWrapped Instence { get { if (instence == null) instence = new EntryWrapped(); return instence; } }
+        #endregion 
+
+
         [Flags]
         enum Mode
         {
@@ -132,7 +132,13 @@ namespace ConsoleTiny
         private int[] m_TypeCounts = new[] { 0, 0, 0 };
         private int m_LastEntryCount = -1;
         private EntryInfo m_SelectedInfo;
+        /// <summary>
+        /// 所有入口信息
+        /// </summary>
         private readonly List<EntryInfo> m_EntryInfos = new List<EntryInfo>();
+        /// <summary>
+        /// 被过滤后的入口信息
+        /// </summary>
         private readonly List<EntryInfo> m_FilteredInfos = new List<EntryInfo>();
         private readonly CustomFiltersGroup m_CustomFilters = new CustomFiltersGroup();
         private readonly List<string> m_WrapperInfos = new List<string>();
@@ -143,32 +149,56 @@ namespace ConsoleTiny
         private const string kPrefCustomFilters = "ConsoleTiny_CustomFilters";
         private const string kPrefWrappers = "ConsoleTiny_Wrappers";
 
-        public bool HasFlag(int flags) { return (m_ConsoleFlags & flags) != 0; }
-
-        public void SetFlag(int flags, bool val) { SetConsoleFlag(flags, val); }
-
-        private void SetConsoleFlag(int bit, bool value)
+        /// <summary>
+        /// 检查目标是否包含目标枚举值
+        /// </summary>
+        /// <param name="flags">目标枚举值</param>
+        /// <returns>是否包含</returns>
+        public bool HasFlag(int flags)
         {
-            if (value)
+            return (m_ConsoleFlags & flags) != 0;
+        }
+
+        /// <summary>
+        /// 设置枚举值
+        /// </summary>
+        /// <param name="flags"></param>
+        /// <param name="val">true：添加，false：移除</param>
+        public void SetFlag(int flags, bool val)
+        {
+            if (val)
             {
-                m_ConsoleFlagsComing |= bit;
+                m_ConsoleFlagsComing |= flags;
             }
             else
             {
-                m_ConsoleFlagsComing &= ~bit;
+                m_ConsoleFlagsComing &= ~flags;
             }
         }
 
+        /// <summary>
+        /// 获取被过滤后的行数
+        /// </summary>
+        /// <returns>过滤后的行数</returns>
         public int GetCount()
         {
             return m_FilteredInfos.Count;
         }
 
+        /// <summary>
+        /// 根据点击的行数获取
+        /// </summary>
+        /// <param name="row">行数</param>
+        /// <param name="consoleFlag">输出的类型</param>
+        /// <param name="entryCount">入口号</param>
+        /// <param name="searchIndex"></param>
+        /// <param name="searchEndIndex"></param>
+        /// <returns></returns>
         public string GetEntryLinesAndFlagAndCount(int row, ref int consoleFlag, ref int entryCount, ref int searchIndex, ref int searchEndIndex)
         {
             if (row < 0 || row >= m_FilteredInfos.Count)
             {
-                return String.Empty;
+                return string.Empty;
             }
 
             EntryInfo entryInfo = m_FilteredInfos[row];
@@ -295,15 +325,25 @@ namespace ConsoleTiny
             CheckRepaint(true);
         }
 
+        /// <summary>
+        /// 清空所有入口
+        /// </summary>
         private void ClearEntries()
         {
-            m_SelectedInfo = null;
-            m_EntryInfos.Clear();
-            m_FilteredInfos.Clear();
+            m_SelectedInfo = null;//清除入口选择信息
+            m_EntryInfos.Clear();//清空所有入口
+            m_FilteredInfos.Clear();//清空所有被过滤的入口
             m_LastEntryCount = -1;
             m_TypeCounts = new[] { 0, 0, 0 };
         }
 
+        /// <summary>
+        /// 添加一个入口
+        /// </summary>
+        /// <param name="row">行数</param>
+        /// <param name="entry">入口</param>
+        /// <param name="text">文本</param>
+        /// <param name="entryCount">入口号</param>
         private void AddEntry(int row, LogEntry entry, string text, int entryCount)
         {
             EntryInfo entryInfo = new EntryInfo
@@ -316,8 +356,8 @@ namespace ConsoleTiny
                 entry = entry
             };
             entryInfo.pure = GetPureLines(entryInfo.text, out entryInfo.tagPosInfos);
-            entryInfo.lower = entryInfo.pure.ToLower();
-            m_EntryInfos.Add(entryInfo);
+            entryInfo.lower = entryInfo.pure.ToLower();//将  全部转换为小写
+            m_EntryInfos.Add(entryInfo);//将入口信息添加到入口列表中
 
             bool hasSearchString = !string.IsNullOrEmpty(m_SearchString);
             string searchStringValue = null;
@@ -350,11 +390,14 @@ namespace ConsoleTiny
             }
         }
 
+        /// <summary>
+        /// 根据行刷新所有入口
+        /// </summary>
         private void ResetEntriesForNumberLines()
         {
-            foreach (var entryInfo in m_EntryInfos)
+            foreach (var entryInfo in m_EntryInfos)//遍历所有入口
             {
-                entryInfo.text = GetNumberLines(entryInfo.lines);
+                entryInfo.text = GetNumberLines(entryInfo.lines);//设置文本
                 entryInfo.pure = GetPureLines(entryInfo.text, out entryInfo.tagPosInfos);
                 entryInfo.lower = entryInfo.pure.ToLower();
             }
@@ -558,10 +601,6 @@ namespace ConsoleTiny
                 "width",
                 "height",
         };
-
-        private readonly StringBuilder m_StringBuilder = new StringBuilder();
-        private readonly Stack<int> m_TagStack = new Stack<int>();
-
         private int GetTagIndex(string input, ref int pos, out bool closing)
         {
             closing = false;
@@ -624,6 +663,16 @@ namespace ConsoleTiny
             return -1;
         }
 
+        private readonly StringBuilder m_StringBuilder = new StringBuilder();
+        private readonly Stack<int> m_TagStack = new Stack<int>();
+
+
+        /// <summary>
+        /// 根据输入获取纯系列表
+        /// </summary>
+        /// <param name="input"></param>
+        /// <param name="posList"></param>
+        /// <returns></returns>
         private string GetPureLines(string input, out List<int> posList)
         {
             m_StringBuilder.Length = 0;

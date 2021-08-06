@@ -17,13 +17,11 @@ namespace ConsoleTiny
     public class ConsoleWindow : EditorWindow, IHasCustomMenu
     {
 
-        #region Window
-
+        #region 窗口
         /// <summary>
         /// 单例
         /// </summary>
         static ConsoleWindow ms_ConsoleWindow = null;
-
         /// <summary>
         /// 打开控制台
         /// </summary>
@@ -32,7 +30,10 @@ namespace ConsoleTiny
         {
             GetWindow<ConsoleWindow>();
         }
+        #endregion
 
+
+        #region 生命周期
         void OnEnable()
         {
             ms_ConsoleWindow = this;
@@ -50,7 +51,7 @@ namespace ConsoleTiny
                 m_ConsoleAttachToPlayerState = new ConsoleAttachToPlayerState(this);
 
             m_DevBuild = Unsupported.IsDeveloperMode();
-            LogEntries.wrapped.searchHistory = m_SearchHistory;
+            EntryWrapped.Instence.searchHistory = m_SearchHistory;
         }
 
         void OnDisable()
@@ -60,7 +61,7 @@ namespace ConsoleTiny
 
             m_ConsoleAttachToPlayerState?.Dispose();
             m_ConsoleAttachToPlayerState = null;
-            m_SearchHistory = LogEntries.wrapped.searchHistory;
+            m_SearchHistory = EntryWrapped.Instence.searchHistory;
         }
 
         public void DoLogChanged(string logString, string stackTrace, LogType type)
@@ -78,6 +79,258 @@ namespace ConsoleTiny
                 Repaint();
             }
         }
+
+
+        /// <summary>
+        /// 主要的控制台渲染在这里进行
+        /// </summary>
+        void OnGUI()
+        {
+            Event e = Event.current;//获取当前正在处理的事件
+            EntryWrapped.Instence.UpdateEntries();
+
+            // Copy & Paste selected item
+            if ((e.type == EventType.ValidateCommand || e.type == EventType.ExecuteCommand) && e.commandName == "Copy")
+            {
+                if (e.type == EventType.ExecuteCommand)
+                    EntryWrapped.Instence.StacktraceListView_CopyAll();
+                e.Use();
+            }
+
+            #region Horizontal
+            GUILayout.BeginHorizontal(ConsoleParameters.Toolbar);//开启一个横向的布局（有点没搞懂）
+
+            if (GUILayout.Button(ClearLabel, MiniButton))
+            {
+                UnityEditor.LogEntries.Clear();
+                GUIUtility.keyboardControl = 0;
+            }
+
+            int currCount = EntryWrapped.Instence.GetCount();
+
+            if (logListView.totalRows != currCount && logListView.totalRows > 0)
+            {
+                // scroll bar was at the bottom?
+                if (logListView.scrollPos.y >= logListView.rowHeight * logListView.totalRows - ms_LVHeight)
+                {
+                    logListView.scrollPos.y = currCount * RowHeight - ms_LVHeight;
+                }
+            }
+
+            if (EntryWrapped.Instence.searchFrame)
+            {
+                EntryWrapped.Instence.searchFrame = false;
+                int selectedIndex = EntryWrapped.Instence.GetSelectedEntryIndex();
+                if (selectedIndex != -1)
+                {
+                    int showIndex = selectedIndex + 1;
+                    if (currCount > showIndex)
+                    {
+                        int showCount = ms_LVHeight / RowHeight;
+                        showIndex = showIndex + showCount / 2;
+                    }
+                    logListView.scrollPos.y = showIndex * RowHeight - ms_LVHeight;
+                }
+            }
+
+            EditorGUILayout.Space();
+
+            bool wasCollapsed = EntryWrapped.Instence.collapse;
+            EntryWrapped.Instence.collapse = GUILayout.Toggle(wasCollapsed, CollapseLabel, MiniButton);
+
+            bool collapsedChanged = wasCollapsed != EntryWrapped.Instence.collapse;
+            if (collapsedChanged)
+            {
+                // unselect if collapsed flag changed
+                logListView.row = -1;
+
+                // scroll to bottom
+                logListView.scrollPos.y = EntryWrapped.Instence.GetCount() * RowHeight;
+            }
+
+            SetFlag(ConsoleFlags.ClearOnPlay, GUILayout.Toggle(HasFlag(ConsoleFlags.ClearOnPlay), ClearOnPlayLabel, MiniButton));
+
+#if UNITY_2019_1_OR_NEWER
+            SetFlag(ConsoleFlags.ClearOnBuild, GUILayout.Toggle(HasFlag(ConsoleFlags.ClearOnBuild), Constants.ClearOnBuildLabel, Constants.MiniButton));
+#endif
+            SetFlag(ConsoleFlags.ErrorPause, GUILayout.Toggle(HasFlag(ConsoleFlags.ErrorPause), ErrorPauseLabel, MiniButton));
+
+            ConnectionGUILayout.AttachToPlayerDropdown(m_ConsoleAttachToPlayerState, EditorStyles.toolbarDropDown);
+
+            EditorGUILayout.Space();
+
+            if (m_DevBuild)
+            {
+                GUILayout.FlexibleSpace();
+                SetFlag(ConsoleFlags.StopForAssert, GUILayout.Toggle(HasFlag(ConsoleFlags.StopForAssert), StopForAssertLabel, MiniButton));
+                SetFlag(ConsoleFlags.StopForError, GUILayout.Toggle(HasFlag(ConsoleFlags.StopForError), StopForErrorLabel, MiniButton));
+            }
+
+            GUILayout.FlexibleSpace();
+
+            // Search bar
+            GUILayout.Space(4f);
+            SearchField(e);
+
+            int errorCount = 0, warningCount = 0, logCount = 0;
+            EntryWrapped.Instence.GetCountsByType(ref errorCount, ref warningCount, ref logCount);
+            EditorGUI.BeginChangeCheck();
+            bool setLogFlag = GUILayout.Toggle(EntryWrapped.Instence.HasFlag((int)ConsoleFlags.LogLevelLog), new GUIContent((logCount <= 999 ? logCount.ToString() : "999+"), logCount > 0 ? iconInfoSmall : iconInfoMono), MiniButton);
+            bool setWarningFlag = GUILayout.Toggle(EntryWrapped.Instence.HasFlag((int)ConsoleFlags.LogLevelWarning), new GUIContent((warningCount <= 999 ? warningCount.ToString() : "999+"), warningCount > 0 ? iconWarnSmall : iconWarnMono), MiniButton);
+            bool setErrorFlag = GUILayout.Toggle(EntryWrapped.Instence.HasFlag((int)ConsoleFlags.LogLevelError), new GUIContent((errorCount <= 999 ? errorCount.ToString() : "999+"), errorCount > 0 ? iconErrorSmall : iconErrorMono), MiniButton);
+
+            EntryWrapped.Instence.SetFlag((int)ConsoleFlags.LogLevelLog, setLogFlag);
+            EntryWrapped.Instence.SetFlag((int)ConsoleFlags.LogLevelWarning, setWarningFlag);
+            EntryWrapped.Instence.SetFlag((int)ConsoleFlags.LogLevelError, setErrorFlag);
+
+            if (GUILayout.Button(new GUIContent(errorCount > 0 ? iconFirstErrorSmall : iconFirstErrorMono, FirstErrorLabel), MiniButton))
+            {
+                int firstErrorIndex = EntryWrapped.Instence.GetFirstErrorEntryIndex();
+                if (firstErrorIndex != -1)
+                {
+                    SetActiveEntry(firstErrorIndex);
+                    EntryWrapped.Instence.searchFrame = true;
+                }
+            }
+
+            GUILayout.EndHorizontal();
+            #endregion
+
+            #region Vertical
+            SplitterGUILayout.BeginVerticalSplit(spl);
+            int rowHeight = RowHeight;
+            EditorGUIUtility.SetIconSize(new Vector2(rowHeight, rowHeight));
+            GUIContent tempContent = new GUIContent();
+            int id = GUIUtility.GetControlID(0);
+            int rowDoubleClicked = -1;
+
+            /////@TODO: Make Frame selected work with ListViewState
+            using (new GettingLogEntriesScope(logListView))
+            {
+                int selectedRow = -1;
+                bool openSelectedItem = false;
+                bool collapsed = EntryWrapped.Instence.collapse;
+                foreach (ListViewElement el in ListViewGUI.ListView(logListView, Box))
+                {
+                    if (e.type == EventType.MouseDown && e.button == 0 && el.position.Contains(e.mousePosition))
+                    {
+                        logListView.row = el.row;
+                        selectedRow = el.row;
+                        if (e.clickCount == 2)
+                            openSelectedItem = true;
+                    }
+                    else if (e.type == EventType.Repaint)
+                    {
+                        int mode = 0;
+                        int entryCount = 0;
+                        int searchIndex = 0;
+                        int searchEndIndex = 0;
+                        string text = EntryWrapped.Instence.GetEntryLinesAndFlagAndCount(el.row, ref mode, ref entryCount,
+                            ref searchIndex, ref searchEndIndex);
+                        ConsoleFlags flag = (ConsoleFlags)mode;
+                        bool isSelected = EntryWrapped.Instence.IsEntrySelected(el.row);
+
+                        // Draw the background
+                        GUIStyle s = el.row % 2 == 0 ? OddBackground : EvenBackground;
+                        s.Draw(el.position, true, false, isSelected, false);
+
+                        // Draw the icon
+                        GUIStyle iconStyle = GetStyleForErrorMode(flag, true, LogStyleLineCount == 1);
+                        iconStyle.fixedWidth = 100;
+                        iconStyle.Draw(el.position, false, false, isSelected, false);
+
+
+
+
+                        // Draw the text
+                        tempContent.text = text;
+                        GUIStyle errorModeStyle = GetStyleForErrorMode(flag, false, LogStyleLineCount == 1);
+
+                        if (string.IsNullOrEmpty(EntryWrapped.Instence.searchString) || searchIndex == -1 || searchIndex >= text.Length)
+                        {
+                            Rect v2 = el.position;
+                            v2.x += 100;
+                            errorModeStyle.Draw(v2, tempContent, id, isSelected);
+                        }
+                        else
+                        {
+                            errorModeStyle.DrawWithTextSelection(el.position, tempContent, GUIUtility.keyboardControl, searchIndex, searchEndIndex);
+                        }
+
+                        if (collapsed)
+                        {
+                            Rect badgeRect = el.position;
+                            tempContent.text = entryCount.ToString(CultureInfo.InvariantCulture);
+                            Vector2 badgeSize = CountBadge.CalcSize(tempContent);
+                            badgeRect.xMin = badgeRect.xMax - badgeSize.x;
+                            badgeRect.yMin += ((badgeRect.yMax - badgeRect.yMin) - badgeSize.y) * 0.5f;
+                            badgeRect.x -= 5f;
+                            GUI.Label(badgeRect, tempContent, CountBadge);
+                        }
+
+                        Rect iconRect = el.position;
+                        iconRect.size = new Vector2(100, 100);
+                        GUIStyle style = "Icon.Clip";
+                        //GUI.Label(iconRect, m_Tex, style);
+
+                    }
+                }
+
+                if (selectedRow != -1)
+                {
+                    if (logListView.scrollPos.y >= logListView.rowHeight * logListView.totalRows - ms_LVHeight)
+                        logListView.scrollPos.y = logListView.rowHeight * logListView.totalRows - ms_LVHeight - 1;
+                }
+
+                // Make sure the selected entry is up to date
+                if (logListView.totalRows == 0 || logListView.row >= logListView.totalRows || logListView.row < 0)
+                {
+                }
+                else
+                {
+                    if (logListView.selectionChanged)
+                    {
+                        SetActiveEntry(logListView.row);
+                    }
+                }
+
+                // Open entry using return key
+                if ((GUIUtility.keyboardControl == logListView.ID) && (e.type == EventType.KeyDown) && (e.keyCode == KeyCode.Return) && (logListView.row != 0))
+                {
+                    selectedRow = logListView.row;
+                    openSelectedItem = true;
+                }
+
+                if (e.type != EventType.Layout && ListViewGUI.ilvState.rectHeight != 1)
+                    ms_LVHeight = ListViewGUI.ilvState.rectHeight;
+
+                if (openSelectedItem)
+                {
+                    rowDoubleClicked = selectedRow;
+                    e.Use();
+                }
+
+                if (selectedRow != -1)
+                {
+                    SetActiveEntry(selectedRow);
+                }
+            }
+
+            // Prevent dead locking in EditorMonoConsole by delaying callbacks (which can log to the console) until after LogEntries.EndGettingEntries() has been
+            // called (this releases the mutex in EditorMonoConsole so logging again is allowed). Fix for case 1081060.
+            if (rowDoubleClicked != -1)
+                EntryWrapped.Instence.StacktraceListView_RowGotDoubleClicked();
+
+            EditorGUIUtility.SetIconSize(Vector2.zero);
+
+            StacktraceListView(e, tempContent);
+
+            SplitterGUILayout.EndVerticalSplit();
+            #endregion
+
+
+        }
+
         #endregion
 
         #region Parameters
@@ -137,17 +390,11 @@ namespace ConsoleTiny
             // We reset the scroll list to auto scrolling whenever the log entry count is modified
             logListView.rowHeight = 32;
             logListView.row = -1;
-            logListView.scrollPos.y = LogEntries.wrapped.GetCount() * newRowHeight;
+            logListView.scrollPos.y = EntryWrapped.Instence.GetCount() * newRowHeight;
 
             Repaint();
         }
         #endregion
-
-
-
-
-
-
 
         #region Tools
         /// <summary>
@@ -253,7 +500,7 @@ namespace ConsoleTiny
             messageListView.scrollPos.y = 0;
             if (selectedIndex != -1)
             {
-                var instanceID = LogEntries.wrapped.SetSelectedEntry(selectedIndex);
+                var instanceID = EntryWrapped.Instence.SetSelectedEntry(selectedIndex);
                 // ping object referred by the log entry
                 if (m_ActiveInstanceID != instanceID)
                 {
@@ -265,256 +512,6 @@ namespace ConsoleTiny
         }
         #endregion
 
-
-        /// <summary>
-        /// 主要的控制台渲染在这里进行
-        /// </summary>
-        void OnGUI()
-        {
-            Event e = Event.current;
-            LogEntries.wrapped.UpdateEntries();
-
-            // Copy & Paste selected item
-            if ((e.type == EventType.ValidateCommand || e.type == EventType.ExecuteCommand) && e.commandName == "Copy")
-            {
-                if (e.type == EventType.ExecuteCommand)
-                    LogEntries.wrapped.StacktraceListView_CopyAll();
-                e.Use();
-            }
-
-            #region Horizontal
-            GUILayout.BeginHorizontal(ConsoleParameters.Toolbar);//开启一个横向的布局（有点没搞懂）
-
-            if (GUILayout.Button(ClearLabel, MiniButton))
-            {
-                LogEntries.Clear();
-                GUIUtility.keyboardControl = 0;
-            }
-
-            int currCount = LogEntries.wrapped.GetCount();
-
-            if (logListView.totalRows != currCount && logListView.totalRows > 0)
-            {
-                // scroll bar was at the bottom?
-                if (logListView.scrollPos.y >= logListView.rowHeight * logListView.totalRows - ms_LVHeight)
-                {
-                    logListView.scrollPos.y = currCount * RowHeight - ms_LVHeight;
-                }
-            }
-
-            if (LogEntries.wrapped.searchFrame)
-            {
-                LogEntries.wrapped.searchFrame = false;
-                int selectedIndex = LogEntries.wrapped.GetSelectedEntryIndex();
-                if (selectedIndex != -1)
-                {
-                    int showIndex = selectedIndex + 1;
-                    if (currCount > showIndex)
-                    {
-                        int showCount = ms_LVHeight / RowHeight;
-                        showIndex = showIndex + showCount / 2;
-                    }
-                    logListView.scrollPos.y = showIndex * RowHeight - ms_LVHeight;
-                }
-            }
-
-            EditorGUILayout.Space();
-
-            bool wasCollapsed = LogEntries.wrapped.collapse;
-            LogEntries.wrapped.collapse = GUILayout.Toggle(wasCollapsed, CollapseLabel, MiniButton);
-
-            bool collapsedChanged = wasCollapsed != LogEntries.wrapped.collapse;
-            if (collapsedChanged)
-            {
-                // unselect if collapsed flag changed
-                logListView.row = -1;
-
-                // scroll to bottom
-                logListView.scrollPos.y = LogEntries.wrapped.GetCount() * RowHeight;
-            }
-
-            SetFlag(ConsoleFlags.ClearOnPlay, GUILayout.Toggle(HasFlag(ConsoleFlags.ClearOnPlay), ClearOnPlayLabel, MiniButton));
-
-#if UNITY_2019_1_OR_NEWER
-            SetFlag(ConsoleFlags.ClearOnBuild, GUILayout.Toggle(HasFlag(ConsoleFlags.ClearOnBuild), Constants.ClearOnBuildLabel, Constants.MiniButton));
-#endif
-            SetFlag(ConsoleFlags.ErrorPause, GUILayout.Toggle(HasFlag(ConsoleFlags.ErrorPause), ErrorPauseLabel, MiniButton));
-
-            ConnectionGUILayout.AttachToPlayerDropdown(m_ConsoleAttachToPlayerState, EditorStyles.toolbarDropDown);
-
-            EditorGUILayout.Space();
-
-            if (m_DevBuild)
-            {
-                GUILayout.FlexibleSpace();
-                SetFlag(ConsoleFlags.StopForAssert, GUILayout.Toggle(HasFlag(ConsoleFlags.StopForAssert), StopForAssertLabel, MiniButton));
-                SetFlag(ConsoleFlags.StopForError, GUILayout.Toggle(HasFlag(ConsoleFlags.StopForError), StopForErrorLabel, MiniButton));
-            }
-
-            GUILayout.FlexibleSpace();
-
-            // Search bar
-            GUILayout.Space(4f);
-            SearchField(e);
-
-            int errorCount = 0, warningCount = 0, logCount = 0;
-            LogEntries.wrapped.GetCountsByType(ref errorCount, ref warningCount, ref logCount);
-            EditorGUI.BeginChangeCheck();
-            bool setLogFlag = GUILayout.Toggle(LogEntries.wrapped.HasFlag((int)ConsoleFlags.LogLevelLog), new GUIContent((logCount <= 999 ? logCount.ToString() : "999+"), logCount > 0 ? iconInfoSmall : iconInfoMono), MiniButton);
-            bool setWarningFlag = GUILayout.Toggle(LogEntries.wrapped.HasFlag((int)ConsoleFlags.LogLevelWarning), new GUIContent((warningCount <= 999 ? warningCount.ToString() : "999+"), warningCount > 0 ? iconWarnSmall : iconWarnMono), MiniButton);
-            bool setErrorFlag = GUILayout.Toggle(LogEntries.wrapped.HasFlag((int)ConsoleFlags.LogLevelError), new GUIContent((errorCount <= 999 ? errorCount.ToString() : "999+"), errorCount > 0 ? iconErrorSmall : iconErrorMono), MiniButton);
-
-            LogEntries.wrapped.SetFlag((int)ConsoleFlags.LogLevelLog, setLogFlag);
-            LogEntries.wrapped.SetFlag((int)ConsoleFlags.LogLevelWarning, setWarningFlag);
-            LogEntries.wrapped.SetFlag((int)ConsoleFlags.LogLevelError, setErrorFlag);
-
-            if (GUILayout.Button(new GUIContent(errorCount > 0 ? iconFirstErrorSmall : iconFirstErrorMono, FirstErrorLabel), MiniButton))
-            {
-                int firstErrorIndex = LogEntries.wrapped.GetFirstErrorEntryIndex();
-                if (firstErrorIndex != -1)
-                {
-                    SetActiveEntry(firstErrorIndex);
-                    LogEntries.wrapped.searchFrame = true;
-                }
-            }
-
-            GUILayout.EndHorizontal();
-            #endregion
-
-            #region Vertical
-            SplitterGUILayout.BeginVerticalSplit(spl);
-            int rowHeight = RowHeight;
-            EditorGUIUtility.SetIconSize(new Vector2(rowHeight, rowHeight));
-            GUIContent tempContent = new GUIContent();
-            int id = GUIUtility.GetControlID(0);
-            int rowDoubleClicked = -1;
-
-            /////@TODO: Make Frame selected work with ListViewState
-            using (new GettingLogEntriesScope(logListView))
-            {
-                int selectedRow = -1;
-                bool openSelectedItem = false;
-                bool collapsed = LogEntries.wrapped.collapse;
-                foreach (ListViewElement el in ListViewGUI.ListView(logListView, Box))
-                {
-                    if (e.type == EventType.MouseDown && e.button == 0 && el.position.Contains(e.mousePosition))
-                    {
-                        logListView.row = el.row;
-                        selectedRow = el.row;
-                        if (e.clickCount == 2)
-                            openSelectedItem = true;
-                    }
-                    else if (e.type == EventType.Repaint)
-                    {
-                        int mode = 0;
-                        int entryCount = 0;
-                        int searchIndex = 0;
-                        int searchEndIndex = 0;
-                        string text = LogEntries.wrapped.GetEntryLinesAndFlagAndCount(el.row, ref mode, ref entryCount,
-                            ref searchIndex, ref searchEndIndex);
-                        ConsoleFlags flag = (ConsoleFlags)mode;
-                        bool isSelected = LogEntries.wrapped.IsEntrySelected(el.row);
-
-                        // Draw the background
-                        GUIStyle s = el.row % 2 == 0 ? OddBackground : EvenBackground;
-                        s.Draw(el.position, true, false, isSelected, false);
-
-                        // Draw the icon
-                        GUIStyle iconStyle = GetStyleForErrorMode(flag, true, LogStyleLineCount == 1);
-                        iconStyle.fixedWidth = 100;
-                        iconStyle.Draw(el.position, false, false, isSelected, false);
-
-
-
-
-                        // Draw the text
-                        tempContent.text = text;
-                        GUIStyle errorModeStyle = GetStyleForErrorMode(flag, false, LogStyleLineCount == 1);
-
-                        if (string.IsNullOrEmpty(LogEntries.wrapped.searchString) || searchIndex == -1 || searchIndex >= text.Length)
-                        {
-                            Rect v2 = el.position;
-                            v2.x += 100;
-                            errorModeStyle.Draw(v2, tempContent, id, isSelected);
-                        }
-                        else
-                        {
-                            errorModeStyle.DrawWithTextSelection(el.position, tempContent, GUIUtility.keyboardControl, searchIndex, searchEndIndex);
-                        }
-
-                        if (collapsed)
-                        {
-                            Rect badgeRect = el.position;
-                            tempContent.text = entryCount.ToString(CultureInfo.InvariantCulture);
-                            Vector2 badgeSize = CountBadge.CalcSize(tempContent);
-                            badgeRect.xMin = badgeRect.xMax - badgeSize.x;
-                            badgeRect.yMin += ((badgeRect.yMax - badgeRect.yMin) - badgeSize.y) * 0.5f;
-                            badgeRect.x -= 5f;
-                            GUI.Label(badgeRect, tempContent, CountBadge);
-                        }
-
-                        Rect iconRect = el.position;
-                        iconRect.size = new Vector2(100, 100);
-                        GUIStyle style = "Icon.Clip";
-                        //GUI.Label(iconRect, m_Tex, style);
-
-                    }
-                }
-
-                if (selectedRow != -1)
-                {
-                    if (logListView.scrollPos.y >= logListView.rowHeight * logListView.totalRows - ms_LVHeight)
-                        logListView.scrollPos.y = logListView.rowHeight * logListView.totalRows - ms_LVHeight - 1;
-                }
-
-                // Make sure the selected entry is up to date
-                if (logListView.totalRows == 0 || logListView.row >= logListView.totalRows || logListView.row < 0)
-                {
-                }
-                else
-                {
-                    if (logListView.selectionChanged)
-                    {
-                        SetActiveEntry(logListView.row);
-                    }
-                }
-
-                // Open entry using return key
-                if ((GUIUtility.keyboardControl == logListView.ID) && (e.type == EventType.KeyDown) && (e.keyCode == KeyCode.Return) && (logListView.row != 0))
-                {
-                    selectedRow = logListView.row;
-                    openSelectedItem = true;
-                }
-
-                if (e.type != EventType.Layout && ListViewGUI.ilvState.rectHeight != 1)
-                    ms_LVHeight = ListViewGUI.ilvState.rectHeight;
-
-                if (openSelectedItem)
-                {
-                    rowDoubleClicked = selectedRow;
-                    e.Use();
-                }
-
-                if (selectedRow != -1)
-                {
-                    SetActiveEntry(selectedRow);
-                }
-            }
-
-            // Prevent dead locking in EditorMonoConsole by delaying callbacks (which can log to the console) until after LogEntries.EndGettingEntries() has been
-            // called (this releases the mutex in EditorMonoConsole so logging again is allowed). Fix for case 1081060.
-            if (rowDoubleClicked != -1)
-                LogEntries.wrapped.StacktraceListView_RowGotDoubleClicked();
-
-            EditorGUIUtility.SetIconSize(Vector2.zero);
-
-            StacktraceListView(e, tempContent);
-
-            SplitterGUILayout.EndVerticalSplit();
-            #endregion
-
-
-        }
 
         private void SearchField(Event e)
         {
@@ -530,7 +527,7 @@ namespace ConsoleTiny
                     e.Use();
             }
 
-            string searchText = LogEntries.wrapped.searchString;
+            string searchText = EntryWrapped.Instence.searchString;
             if (e.type == EventType.KeyDown)
             {
                 if (e.keyCode == KeyCode.Escape)
@@ -551,17 +548,17 @@ namespace ConsoleTiny
                 EditorGUI.kSingleLineHeight, EditorStyles.toolbarSearchField, GUILayout.MinWidth(100),
                 GUILayout.MaxWidth(300));
 
-            bool showHistory = LogEntries.wrapped.searchHistory[0].Length != 0;
+            bool showHistory = EntryWrapped.Instence.searchHistory[0].Length != 0;
             Rect popupPosition = rect;
             popupPosition.width = 20;
             if (showHistory && Event.current.type == EventType.MouseDown && popupPosition.Contains(Event.current.mousePosition))
             {
                 GUIUtility.keyboardControl = 0;
-                EditorUtility.DisplayCustomMenu(rect, EditorGUIUtility.TempContent(LogEntries.wrapped.searchHistory), -1, OnSetFilteringHistoryCallback, null);
+                EditorUtility.DisplayCustomMenu(rect, EditorGUIUtility.TempContent(EntryWrapped.Instence.searchHistory), -1, OnSetFilteringHistoryCallback, null);
                 Event.current.Use();
             }
 
-            LogEntries.wrapped.searchString = EditorGUI.ToolbarSearchField(
+            EntryWrapped.Instence.searchString = EditorGUI.ToolbarSearchField(
 
                 rect, searchText, showHistory);
 
@@ -569,13 +566,13 @@ namespace ConsoleTiny
             {
                 Rect buttonRect = rect;
                 buttonRect.x += buttonRect.width;
-                var menuData = new CustomFiltersItemProvider(LogEntries.wrapped.customFilters);
+                var menuData = new CustomFiltersItemProvider(EntryWrapped.Instence.customFilters);
                 var flexibleMenu = new FlexibleMenu(menuData, -1, new CustomFiltersModifyItemUI(), null);
                 PopupWindow.Show(buttonRect, flexibleMenu);
             }
 
             int iconIndex = 0;
-            foreach (var filter in LogEntries.wrapped.customFilters.filters)
+            foreach (var filter in EntryWrapped.Instence.customFilters.filters)
             {
                 if (iconIndex >= 7)
                 {
@@ -587,7 +584,7 @@ namespace ConsoleTiny
 
         private void OnSetFilteringHistoryCallback(object userData, string[] options, int selected)
         {
-            LogEntries.wrapped.searchString = options[selected];
+            EntryWrapped.Instence.searchString = options[selected];
         }
 
         #region 跟踪堆栈
@@ -604,24 +601,24 @@ namespace ConsoleTiny
         /// <param name="tempContent"></param>
         private void StacktraceListView(Event e, GUIContent tempContent)
         {
-            float maxWidth = LogEntries.wrapped.StacktraceListView_GetMaxWidth(tempContent, MessageStyle);
+            float maxWidth = EntryWrapped.Instence.StacktraceListView_GetMaxWidth(tempContent, MessageStyle);
 
             if (m_StacktraceLineContextClickRow != -1)
             {
                 var stacktraceLineInfoIndex = m_StacktraceLineContextClickRow;
                 m_StacktraceLineContextClickRow = -1;
                 GenericMenu menu = new GenericMenu();
-                if (LogEntries.wrapped.StacktraceListView_CanOpen(stacktraceLineInfoIndex))
+                if (EntryWrapped.Instence.StacktraceListView_CanOpen(stacktraceLineInfoIndex))
                 {
-                    menu.AddItem(new GUIContent("Open"), false, LogEntries.wrapped.StacktraceListView_Open, stacktraceLineInfoIndex);
+                    menu.AddItem(new GUIContent("Open"), false, EntryWrapped.Instence.StacktraceListView_Open, stacktraceLineInfoIndex);
                     menu.AddSeparator("");
-                    if (LogEntries.wrapped.StacktraceListView_CanWrapper(stacktraceLineInfoIndex))
+                    if (EntryWrapped.Instence.StacktraceListView_CanWrapper(stacktraceLineInfoIndex))
                     {
-                        menu.AddItem(new GUIContent("Wrapper"), LogEntries.wrapped.StacktraceListView_IsWrapper(stacktraceLineInfoIndex), LogEntries.wrapped.StacktraceListView_Wrapper, stacktraceLineInfoIndex);
+                        menu.AddItem(new GUIContent("Wrapper"), EntryWrapped.Instence.StacktraceListView_IsWrapper(stacktraceLineInfoIndex), EntryWrapped.Instence.StacktraceListView_Wrapper, stacktraceLineInfoIndex);
                     }
                 }
-                menu.AddItem(new GUIContent("Copy"), false, LogEntries.wrapped.StacktraceListView_Copy, stacktraceLineInfoIndex);
-                menu.AddItem(new GUIContent("Copy All"), false, LogEntries.wrapped.StacktraceListView_CopyAll);
+                menu.AddItem(new GUIContent("Copy"), false, EntryWrapped.Instence.StacktraceListView_Copy, stacktraceLineInfoIndex);
+                menu.AddItem(new GUIContent("Copy All"), false, EntryWrapped.Instence.StacktraceListView_CopyAll);
                 menu.ShowAsContext();
             }
 
@@ -629,7 +626,7 @@ namespace ConsoleTiny
             int rowDoubleClicked = -1;
             int selectedRow = -1;
             bool openSelectedItem = false;
-            messageListView.totalRows = LogEntries.wrapped.StacktraceListView_GetCount();
+            messageListView.totalRows = EntryWrapped.Instence.StacktraceListView_GetCount();
             GUILayout.BeginHorizontal(Box);
             messageListView.scrollPos = EditorGUILayout.BeginScrollView(messageListView.scrollPos);
             ListViewGUI.ilvState.beganHorizontal = true;
@@ -656,7 +653,7 @@ namespace ConsoleTiny
                 }
                 else if (e.type == EventType.Repaint)
                 {
-                    tempContent.text = LogEntries.wrapped.StacktraceListView_GetLine(el.row);
+                    tempContent.text = EntryWrapped.Instence.StacktraceListView_GetLine(el.row);
                     rect = el.position;
                     if (rect.width < maxWidth)
                     {
@@ -686,7 +683,7 @@ namespace ConsoleTiny
 
             if (rowDoubleClicked != -1)
             {
-                LogEntries.wrapped.StacktraceListView_Open(rowDoubleClicked);
+                EntryWrapped.Instence.StacktraceListView_Open(rowDoubleClicked);
             }
         }
 
@@ -715,9 +712,9 @@ namespace ConsoleTiny
             if (Application.platform == RuntimePlatform.OSXEditor)
                 menu.AddItem(EditorGUIUtility.TextContent("Open Player Log"), false, UnityEditorInternal.InternalEditorUtility.OpenPlayerConsole);
             menu.AddItem(EditorGUIUtility.TextContent("Open Editor Log"), false, UnityEditorInternal.InternalEditorUtility.OpenEditorConsole);
-            menu.AddItem(EditorGUIUtility.TextContent("Export Console Log"), false, LogEntries.wrapped.ExportLog);
+            menu.AddItem(EditorGUIUtility.TextContent("Export Console Log"), false, EntryWrapped.Instence.ExportLog);
 
-            menu.AddItem(EditorGUIUtility.TrTextContent("Show Timestamp"), LogEntries.wrapped.showTimestamp, SetTimestamp);
+            menu.AddItem(EditorGUIUtility.TrTextContent("Show Timestamp"), EntryWrapped.Instence.showTimestamp, SetTimestamp);
 
             for (int i = 1; i <= 10; ++i)
             {
@@ -730,7 +727,7 @@ namespace ConsoleTiny
 
         private void SetTimestamp()
         {
-            LogEntries.wrapped.showTimestamp = !LogEntries.wrapped.showTimestamp;
+            EntryWrapped.Instence.showTimestamp = !EntryWrapped.Instence.showTimestamp;
         }
 
         private void SetLogLineCount(object obj)
@@ -782,7 +779,7 @@ namespace ConsoleTiny
 
         public GettingLogEntriesScope(ListViewState listView)
         {
-            listView.totalRows = LogEntries.wrapped.GetCount();
+            listView.totalRows = EntryWrapped.Instence.GetCount();
         }
 
         public void Dispose()
@@ -798,159 +795,4 @@ namespace ConsoleTiny
                 Debug.LogError("Scope was not disposed! You should use the 'using' keyword or manually call Dispose.");
         }
     }
-
-    #region CustomFilters
-
-    internal class CustomFiltersItemProvider : IFlexibleMenuItemProvider
-    {
-        private readonly EntryWrapped.CustomFiltersGroup m_Groups;
-
-        public CustomFiltersItemProvider(EntryWrapped.CustomFiltersGroup groups)
-        {
-            m_Groups = groups;
-        }
-
-        public int Count()
-        {
-            return m_Groups.filters.Count;
-        }
-
-        public object GetItem(int index)
-        {
-            return m_Groups.filters[index];
-        }
-
-        public int Add(object obj)
-        {
-            m_Groups.filters.Add(new EntryWrapped.CustomFiltersItem() { filter = (string)obj, changed = false });
-            m_Groups.Save();
-            return Count() - 1;
-        }
-
-        public void Replace(int index, object newPresetObject)
-        {
-            m_Groups.filters[index].filter = (string)newPresetObject;
-            m_Groups.Save();
-        }
-
-        public void Remove(int index)
-        {
-            if (m_Groups.filters[index].toggle)
-            {
-                m_Groups.changed = true;
-            }
-            m_Groups.filters.RemoveAt(index);
-            m_Groups.Save();
-        }
-
-        public object Create()
-        {
-            return "log";
-        }
-
-        public void Move(int index, int destIndex, bool insertAfterDestIndex)
-        {
-            Debug.LogError("Missing impl");
-        }
-
-        public string GetName(int index)
-        {
-            return m_Groups.filters[index].filter;
-        }
-
-        public bool IsModificationAllowed(int index)
-        {
-            return true;
-        }
-
-        public int[] GetSeperatorIndices()
-        {
-            return new int[0];
-        }
-    }
-
-    internal class CustomFiltersModifyItemUI : FlexibleMenuModifyItemUI
-    {
-        private static class Styles
-        {
-            public static GUIContent headerAdd = EditorGUIUtility.TextContent("Add");
-            public static GUIContent headerEdit = EditorGUIUtility.TextContent("Edit");
-            public static GUIContent optionalText = EditorGUIUtility.TextContent("Search");
-            public static GUIContent ok = EditorGUIUtility.TextContent("OK");
-            public static GUIContent cancel = EditorGUIUtility.TextContent("Cancel");
-        }
-
-        private string m_TextSearch;
-
-        public override void OnClose()
-        {
-            m_TextSearch = null;
-            base.OnClose();
-        }
-
-        public override Vector2 GetWindowSize()
-        {
-            return new Vector2(330f, 80f);
-        }
-
-        public override void OnGUI(Rect rect)
-        {
-            string itemValue = m_Object as string;
-            if (itemValue == null)
-            {
-                Debug.LogError("Invalid object");
-                return;
-            }
-
-            if (m_TextSearch == null)
-            {
-                m_TextSearch = itemValue;
-            }
-
-            const float kColumnWidth = 70f;
-            const float kSpacing = 10f;
-
-            GUILayout.Space(3);
-            GUILayout.Label(m_MenuType == MenuType.Add ? Styles.headerAdd : Styles.headerEdit, EditorStyles.boldLabel);
-
-            Rect seperatorRect = GUILayoutUtility.GetRect(1, 1);
-            FlexibleMenu.DrawRect(seperatorRect,
-                (EditorGUIUtility.isProSkin)
-                    ? new Color(0.32f, 0.32f, 0.32f, 1.333f)
-                    : new Color(0.6f, 0.6f, 0.6f, 1.333f));                      // dark : light
-            GUILayout.Space(4);
-
-            // Optional text
-            GUILayout.BeginHorizontal();
-            GUILayout.Label(Styles.optionalText, GUILayout.Width(kColumnWidth));
-            GUILayout.Space(kSpacing);
-            m_TextSearch = EditorGUILayout.TextField(m_TextSearch);
-            GUILayout.EndHorizontal();
-
-            GUILayout.Space(5f);
-
-            // Cancel, Ok
-            GUILayout.BeginHorizontal();
-            GUILayout.Space(10);
-            if (GUILayout.Button(Styles.cancel))
-            {
-                editorWindow.Close();
-            }
-
-            if (GUILayout.Button(Styles.ok))
-            {
-                var textSearch = m_TextSearch.Trim();
-                if (!string.IsNullOrEmpty(textSearch))
-                {
-                    m_Object = m_TextSearch;
-                    Accepted();
-                    editorWindow.Close();
-                }
-            }
-            GUILayout.Space(10);
-            GUILayout.EndHorizontal();
-        }
-    }
-
-    #endregion
 }

@@ -212,7 +212,7 @@ namespace ConsoleTiny
             set
             {
                 ms_logStyleLineCount = value;
-                LogEntries.wrapped.numberOfLines = value;
+                EntryWrapped.Instence.numberOfLines = value;
 
                 // If Constants hasn't been initialized yet we just skip this for now
                 //If Constants hasn't been initialized yet we just skip this for now and let Init() call this for us in a bit.

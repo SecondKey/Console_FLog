@@ -32,6 +32,75 @@ namespace ConsoleTiny
         }
         #endregion
 
+        #region Parameters
+        /// <summary>
+        /// 显示信息列表
+        /// </summary>
+        ListViewState logListView;
+        /// <summary>
+        /// 信息详情列表
+        /// </summary>
+        ListViewState messageListView;
+        /// <summary>
+        /// 
+        /// </summary>
+        bool m_DevBuild;
+
+        /// <summary>
+        /// 选择历史
+        /// </summary>
+        private string[] m_SearchHistory = new[] { "" };
+
+        private double m_NextRepaint = double.MaxValue;
+
+        SplitterState spl = new SplitterState(new float[] { 70, 30 }, new int[] { 32, 32 }, null);
+
+        int ms_LVHeight = 0;
+
+        IConnectionState m_ConsoleAttachToPlayerState;
+
+        #endregion
+
+        #region Style
+        /// <summary>
+        /// 行高
+        /// </summary>
+        int m_LineHeight;
+        /// <summary>
+        /// 边框高度
+        /// </summary>
+        int m_BorderHeight;
+
+        /// <summary>
+        /// log列表行高
+        /// </summary>
+        private int RowHeight => (LogStyleLineCount * m_LineHeight) + m_BorderHeight;
+
+        public void RefreshPageStyle()
+        {
+
+        }
+
+        /// <summary>
+        /// 刷新列表视图
+        /// </summary>
+        void UpdateListView()
+        {
+            m_LineHeight = Mathf.RoundToInt(ErrorStyle.lineHeight);
+            m_BorderHeight = ErrorStyle.border.top + ErrorStyle.border.bottom;
+            UpdateListView();
+
+            int newRowHeight = RowHeight;
+
+            // We reset the scroll list to auto scrolling whenever the log entry count is modified
+            logListView.rowHeight = 32;
+            logListView.row = -1;
+            logListView.scrollPos.y = EntryWrapped.Instence.GetCount() * newRowHeight;
+
+            Repaint();
+        }
+        #endregion
+
 
         #region 生命周期
         void OnEnable()
@@ -87,31 +156,34 @@ namespace ConsoleTiny
         void OnGUI()
         {
             Event e = Event.current;//获取当前正在处理的事件
-            EntryWrapped.Instence.UpdateEntries();
+            EntryWrapped.Instence.UpdateEntries();//更新所有入口
 
-            // Copy & Paste selected item
+            #region 复制粘贴选中的项
             if ((e.type == EventType.ValidateCommand || e.type == EventType.ExecuteCommand) && e.commandName == "Copy")
             {
                 if (e.type == EventType.ExecuteCommand)
                     EntryWrapped.Instence.StacktraceListView_CopyAll();
                 e.Use();
             }
+            #endregion
 
             #region Horizontal
             GUILayout.BeginHorizontal(ConsoleParameters.Toolbar);//开启一个横向的布局（有点没搞懂）
 
-            if (GUILayout.Button(ClearLabel, MiniButton))
+            #region Clear按钮
+            if (GUILayout.Button(ClearLabel, MiniButton))//创建Clear按钮，判断该按钮是否被按下
             {
-                UnityEditor.LogEntries.Clear();
-                GUIUtility.keyboardControl = 0;
+                LogEntries.Clear();//清空所有入口
+                GUIUtility.keyboardControl = 0;//清空键盘控制
             }
+            #endregion  
 
+            #region 调整列表的位置
+            //获取被过滤后的行数
             int currCount = EntryWrapped.Instence.GetCount();
-
             if (logListView.totalRows != currCount && logListView.totalRows > 0)
             {
-                // scroll bar was at the bottom?
-                if (logListView.scrollPos.y >= logListView.rowHeight * logListView.totalRows - ms_LVHeight)
+                if (logListView.scrollPos.y >= logListView.rowHeight * logListView.totalRows - ms_LVHeight)//判断滚动条是否在最低位置
                 {
                     logListView.scrollPos.y = currCount * RowHeight - ms_LVHeight;
                 }
@@ -133,55 +205,71 @@ namespace ConsoleTiny
                 }
             }
 
-            EditorGUILayout.Space();
+            #endregion
+            EditorGUILayout.Space();//插入空格
 
+            #region collapse按钮
             bool wasCollapsed = EntryWrapped.Instence.collapse;
             EntryWrapped.Instence.collapse = GUILayout.Toggle(wasCollapsed, CollapseLabel, MiniButton);
-
             bool collapsedChanged = wasCollapsed != EntryWrapped.Instence.collapse;
             if (collapsedChanged)
             {
-                // unselect if collapsed flag changed
-                logListView.row = -1;
-
-                // scroll to bottom
-                logListView.scrollPos.y = EntryWrapped.Instence.GetCount() * RowHeight;
+                logListView.row = -1;// unselect if collapsed flag changed
+                logListView.scrollPos.y = EntryWrapped.Instence.GetCount() * RowHeight;//滚动条滚到最低
             }
+            #endregion
 
+            #region ClearOnPlay按钮
             SetFlag(ConsoleFlags.ClearOnPlay, GUILayout.Toggle(HasFlag(ConsoleFlags.ClearOnPlay), ClearOnPlayLabel, MiniButton));
+            #endregion
 
+            #region ClearOnBuild
 #if UNITY_2019_1_OR_NEWER
             SetFlag(ConsoleFlags.ClearOnBuild, GUILayout.Toggle(HasFlag(ConsoleFlags.ClearOnBuild), Constants.ClearOnBuildLabel, Constants.MiniButton));
 #endif
-            SetFlag(ConsoleFlags.ErrorPause, GUILayout.Toggle(HasFlag(ConsoleFlags.ErrorPause), ErrorPauseLabel, MiniButton));
+            #endregion
 
-            ConnectionGUILayout.AttachToPlayerDropdown(m_ConsoleAttachToPlayerState, EditorStyles.toolbarDropDown);
+            #region ErrorPause
+            SetFlag(ConsoleFlags.ErrorPause, GUILayout.Toggle(HasFlag(ConsoleFlags.ErrorPause), ErrorPauseLabel, MiniButton));//报错时暂停按钮
+            #endregion
 
-            EditorGUILayout.Space();
+            #region AttachToPlayer
+            ConnectionGUILayout.AttachToPlayerDropdown(m_ConsoleAttachToPlayerState, EditorStyles.toolbarDropDown);//AttachToPlayer下拉按钮
+            #endregion
 
-            if (m_DevBuild)
+            EditorGUILayout.Space();//插入空格
+
+            #region 开发模式按钮
+            if (m_DevBuild)//检查是不是开发人员模式
             {
-                GUILayout.FlexibleSpace();
-                SetFlag(ConsoleFlags.StopForAssert, GUILayout.Toggle(HasFlag(ConsoleFlags.StopForAssert), StopForAssertLabel, MiniButton));
-                SetFlag(ConsoleFlags.StopForError, GUILayout.Toggle(HasFlag(ConsoleFlags.StopForError), StopForErrorLabel, MiniButton));
+                GUILayout.FlexibleSpace();//插入智能空间
+                SetFlag(ConsoleFlags.StopForAssert, GUILayout.Toggle(HasFlag(ConsoleFlags.StopForAssert), StopForAssertLabel, MiniButton));//维护时停止
+                SetFlag(ConsoleFlags.StopForError, GUILayout.Toggle(HasFlag(ConsoleFlags.StopForError), StopForErrorLabel, MiniButton));//报错时停止
             }
+            #endregion
 
-            GUILayout.FlexibleSpace();
+            GUILayout.FlexibleSpace(); GUILayout.FlexibleSpace();//插入智能空间
 
-            // Search bar
-            GUILayout.Space(4f);
-            SearchField(e);
+            #region 搜索条
+            GUILayout.Space(4f);//插入四格空格
+            SearchField(e);//添加搜索条
+            #endregion
 
-            int errorCount = 0, warningCount = 0, logCount = 0;
-            EntryWrapped.Instence.GetCountsByType(ref errorCount, ref warningCount, ref logCount);
-            EditorGUI.BeginChangeCheck();
-            bool setLogFlag = GUILayout.Toggle(EntryWrapped.Instence.HasFlag((int)ConsoleFlags.LogLevelLog), new GUIContent((logCount <= 999 ? logCount.ToString() : "999+"), logCount > 0 ? iconInfoSmall : iconInfoMono), MiniButton);
-            bool setWarningFlag = GUILayout.Toggle(EntryWrapped.Instence.HasFlag((int)ConsoleFlags.LogLevelWarning), new GUIContent((warningCount <= 999 ? warningCount.ToString() : "999+"), warningCount > 0 ? iconWarnSmall : iconWarnMono), MiniButton);
-            bool setErrorFlag = GUILayout.Toggle(EntryWrapped.Instence.HasFlag((int)ConsoleFlags.LogLevelError), new GUIContent((errorCount <= 999 ? errorCount.ToString() : "999+"), errorCount > 0 ? iconErrorSmall : iconErrorMono), MiniButton);
+            #region LogButton
+            int errorCount = 0;//报错数量
+            int warningCount = 0;//错误数量
+            int logCount = 0;//日志数量
+            EntryWrapped.Instence.GetCountsByType(ref errorCount, ref warningCount, ref logCount);//获取三种输出的数量
+            EditorGUI.BeginChangeCheck();//检查是否有代码被修改
 
-            EntryWrapped.Instence.SetFlag((int)ConsoleFlags.LogLevelLog, setLogFlag);
-            EntryWrapped.Instence.SetFlag((int)ConsoleFlags.LogLevelWarning, setWarningFlag);
-            EntryWrapped.Instence.SetFlag((int)ConsoleFlags.LogLevelError, setErrorFlag);
+            bool setLogFlag = GUILayout.Toggle(EntryWrapped.Instence.HasFlag((int)ConsoleFlags.LogLevelLog), new GUIContent((logCount <= 999 ? logCount.ToString() : "999+"), logCount > 0 ? iconInfoSmall : iconInfoMono), MiniButton);//日志按钮
+            bool setWarningFlag = GUILayout.Toggle(EntryWrapped.Instence.HasFlag((int)ConsoleFlags.LogLevelWarning), new GUIContent((warningCount <= 999 ? warningCount.ToString() : "999+"), warningCount > 0 ? iconWarnSmall : iconWarnMono), MiniButton);//警告按钮
+            bool setErrorFlag = GUILayout.Toggle(EntryWrapped.Instence.HasFlag((int)ConsoleFlags.LogLevelError), new GUIContent((errorCount <= 999 ? errorCount.ToString() : "999+"), errorCount > 0 ? iconErrorSmall : iconErrorMono), MiniButton);//报错按钮
+
+            EntryWrapped.Instence.SetFlag((int)ConsoleFlags.LogLevelLog, setLogFlag);//设置日志是否输出
+            EntryWrapped.Instence.SetFlag((int)ConsoleFlags.LogLevelWarning, setWarningFlag);//设置警告是否输出
+            EntryWrapped.Instence.SetFlag((int)ConsoleFlags.LogLevelError, setErrorFlag);//设置报错是否输出
+            #endregion
 
             if (GUILayout.Button(new GUIContent(errorCount > 0 ? iconFirstErrorSmall : iconFirstErrorMono, FirstErrorLabel), MiniButton))
             {
@@ -193,96 +281,94 @@ namespace ConsoleTiny
                 }
             }
 
-            GUILayout.EndHorizontal();
+            GUILayout.EndHorizontal();//关闭横向布局
             #endregion
 
             #region Vertical
-            SplitterGUILayout.BeginVerticalSplit(spl);
-            int rowHeight = RowHeight;
-            EditorGUIUtility.SetIconSize(new Vector2(rowHeight, rowHeight));
+            SplitterGUILayout.BeginVerticalSplit(spl);//开启纵向布局
+            EditorGUIUtility.SetIconSize(new Vector2(RowHeight, RowHeight));//设置图标
             GUIContent tempContent = new GUIContent();
             int id = GUIUtility.GetControlID(0);
-            int rowDoubleClicked = -1;
+            int rowDoubleClicked = -1;//双击行号
 
             /////@TODO: Make Frame selected work with ListViewState
             using (new GettingLogEntriesScope(logListView))
             {
-                int selectedRow = -1;
-                bool openSelectedItem = false;
-                bool collapsed = EntryWrapped.Instence.collapse;
-                foreach (ListViewElement el in ListViewGUI.ListView(logListView, Box))
+                int selectedRow = -1;//当前选中行号
+                bool collapsed = EntryWrapped.Instence.collapse;//折叠
+                bool openSelectedItem = false;//是否要打开选中条目
+
+                #region 遍历渲染所有的条目
+                foreach (ListViewElement el in ListViewGUI.ListView(logListView, Box))//遍历所有条目
                 {
-                    if (e.type == EventType.MouseDown && e.button == 0 && el.position.Contains(e.mousePosition))
+                    if (e.type == EventType.MouseDown && e.button == 0 && el.position.Contains(e.mousePosition))//如果左键点击当前条目
                     {
-                        logListView.row = el.row;
-                        selectedRow = el.row;
-                        if (e.clickCount == 2)
-                            openSelectedItem = true;
+                        logListView.row = el.row;//将列表的当前行设置为当前选中的行
+                        selectedRow = el.row;//设置选中行为当前选中行
+                        if (e.clickCount == 2)//如果双击
+                            openSelectedItem = true;//打开选择条目
                     }
-                    else if (e.type == EventType.Repaint)
+                    else if (e.type == EventType.Repaint)//如果目标事件是每帧发送的刷新消息
                     {
-                        int mode = 0;
-                        int entryCount = 0;
-                        int searchIndex = 0;
-                        int searchEndIndex = 0;
-                        string text = EntryWrapped.Instence.GetEntryLinesAndFlagAndCount(el.row, ref mode, ref entryCount,
-                            ref searchIndex, ref searchEndIndex);
-                        ConsoleFlags flag = (ConsoleFlags)mode;
-                        bool isSelected = EntryWrapped.Instence.IsEntrySelected(el.row);
+                        var parameters = EntryWrapped.Instence.GetEntryLinesAndFlagAndCount(el.row);//获取入口的数据1：文本 2：类型 3：入口数量 4：选择的条目 5：多选结束条目
+                        ConsoleFlags flag = (ConsoleFlags)parameters.Item2;//输出的类型
+                        bool isSelected = EntryWrapped.Instence.IsEntrySelected(el.row);//条目是否被选中
 
-                        // Draw the background
-                        GUIStyle s = el.row % 2 == 0 ? OddBackground : EvenBackground;
-                        s.Draw(el.position, true, false, isSelected, false);
-
-                        // Draw the icon
-                        GUIStyle iconStyle = GetStyleForErrorMode(flag, true, LogStyleLineCount == 1);
-                        iconStyle.fixedWidth = 100;
-                        iconStyle.Draw(el.position, false, false, isSelected, false);
-
-
-
-
-                        // Draw the text
-                        tempContent.text = text;
-                        GUIStyle errorModeStyle = GetStyleForErrorMode(flag, false, LogStyleLineCount == 1);
-
-                        if (string.IsNullOrEmpty(EntryWrapped.Instence.searchString) || searchIndex == -1 || searchIndex >= text.Length)
+                        #region 绘制条目
+                        #region 背景
+                        GUIStyle s = el.row % 2 == 0 ? OddBackground : EvenBackground;//交替背景颜色
+                        s.Draw(el.position, true, false, isSelected, false);//绘制背景
+                        #endregion
+                        #region 图标
+                        GUIStyle iconStyle = GetStyleForErrorMode(flag, true, LogStyleLineCount == 1);//设置条目图标样式
+                        iconStyle.Draw(el.position, false, false, isSelected, false);//绘制图标
+                        #endregion
+                        #region 文本
+                        tempContent.text = parameters.Item1;//获取文本
+                        GUIStyle errorModeStyle = GetStyleForErrorMode(flag, false, LogStyleLineCount == 1);//绘制文本
+                        if (string.IsNullOrEmpty(EntryWrapped.Instence.searchString) || parameters.Item4 == -1 || parameters.Item4 >= parameters.Item1.Length)
                         {
-                            Rect v2 = el.position;
-                            v2.x += 100;
-                            errorModeStyle.Draw(v2, tempContent, id, isSelected);
+                            errorModeStyle.Draw(el.position, tempContent, id, isSelected);//直接绘制文本
                         }
                         else
                         {
-                            errorModeStyle.DrawWithTextSelection(el.position, tempContent, GUIUtility.keyboardControl, searchIndex, searchEndIndex);
+                            //TODO:不太懂
+                            errorModeStyle.DrawWithTextSelection(el.position, tempContent, GUIUtility.keyboardControl, parameters.Item4, parameters.Item5);//绘制可以选中的文本
                         }
-
-                        if (collapsed)
+                        #endregion
+                        #region 折叠数字角标
+                        if (collapsed)//如果需要折叠
                         {
-                            Rect badgeRect = el.position;
-                            tempContent.text = entryCount.ToString(CultureInfo.InvariantCulture);
-                            Vector2 badgeSize = CountBadge.CalcSize(tempContent);
+                            Rect badgeRect = el.position;//角标位置
+                            tempContent.text = parameters.Item3.ToString(CultureInfo.InvariantCulture);//角标中的文本
+                            Vector2 badgeSize = CountBadge.CalcSize(tempContent);//计算角标大小
                             badgeRect.xMin = badgeRect.xMax - badgeSize.x;
                             badgeRect.yMin += ((badgeRect.yMax - badgeRect.yMin) - badgeSize.y) * 0.5f;
                             badgeRect.x -= 5f;
-                            GUI.Label(badgeRect, tempContent, CountBadge);
+                            GUI.Label(badgeRect, tempContent, CountBadge);//绘制角标
                         }
-
-                        Rect iconRect = el.position;
-                        iconRect.size = new Vector2(100, 100);
-                        GUIStyle style = "Icon.Clip";
+                        #endregion
+                        //Rect iconRect = el.position;
+                        //iconRect.size = new Vector2(100, 100);
+                        //GUIStyle style = "Icon.Clip";
                         //GUI.Label(iconRect, m_Tex, style);
+                        #endregion 
 
                     }
                 }
+                #endregion
 
-                if (selectedRow != -1)
+                #region 列表的滚动位置
+                if (selectedRow != -1)//如果有选中的条目
                 {
-                    if (logListView.scrollPos.y >= logListView.rowHeight * logListView.totalRows - ms_LVHeight)
-                        logListView.scrollPos.y = logListView.rowHeight * logListView.totalRows - ms_LVHeight - 1;
+                    if (logListView.scrollPos.y >= logListView.rowHeight * logListView.totalRows - ms_LVHeight)//如果当前列表位置在滚轮位置以下
+                    {
+                        logListView.scrollPos.y = logListView.rowHeight * logListView.totalRows - ms_LVHeight - 1;//设置当前列表位置到
+                    }
                 }
+                #endregion
 
-                // Make sure the selected entry is up to date
+                #region 确保选中项已经更新
                 if (logListView.totalRows == 0 || logListView.row >= logListView.totalRows || logListView.row < 0)
                 {
                 }
@@ -293,33 +379,49 @@ namespace ConsoleTiny
                         SetActiveEntry(logListView.row);
                     }
                 }
+                #endregion
 
-                // Open entry using return key
+                #region 使用回车键打开入口
                 if ((GUIUtility.keyboardControl == logListView.ID) && (e.type == EventType.KeyDown) && (e.keyCode == KeyCode.Return) && (logListView.row != 0))
                 {
                     selectedRow = logListView.row;
                     openSelectedItem = true;
                 }
+                #endregion
 
-                if (e.type != EventType.Layout && ListViewGUI.ilvState.rectHeight != 1)
+                #region
+                if (e.type != EventType.Layout && ListViewGUI.ilvState.rectHeight != 1)//
+                {
                     ms_LVHeight = ListViewGUI.ilvState.rectHeight;
+                }
+                #endregion
 
+                #region 打开选中项目
                 if (openSelectedItem)
                 {
                     rowDoubleClicked = selectedRow;
                     e.Use();
                 }
+                #endregion
 
+                #region 选中游戏对象
                 if (selectedRow != -1)
                 {
                     SetActiveEntry(selectedRow);
                 }
+                #endregion
             }
 
+
+            #region 延迟回调防止死锁
             // Prevent dead locking in EditorMonoConsole by delaying callbacks (which can log to the console) until after LogEntries.EndGettingEntries() has been
             // called (this releases the mutex in EditorMonoConsole so logging again is allowed). Fix for case 1081060.
             if (rowDoubleClicked != -1)
+            {
                 EntryWrapped.Instence.StacktraceListView_RowGotDoubleClicked();
+
+            }
+            #endregion
 
             EditorGUIUtility.SetIconSize(Vector2.zero);
 
@@ -327,72 +429,6 @@ namespace ConsoleTiny
 
             SplitterGUILayout.EndVerticalSplit();
             #endregion
-
-
-        }
-
-        #endregion
-
-        #region Parameters
-        /// <summary>
-        /// 显示信息列表
-        /// </summary>
-        ListViewState logListView;
-        /// <summary>
-        /// 信息详情列表
-        /// </summary>
-        ListViewState messageListView;
-
-        bool m_DevBuild;
-        private string[] m_SearchHistory = new[] { "" };
-
-        private double m_NextRepaint = double.MaxValue;
-
-        SplitterState spl = new SplitterState(new float[] { 70, 30 }, new int[] { 32, 32 }, null);
-
-        int ms_LVHeight = 0;
-
-        IConnectionState m_ConsoleAttachToPlayerState;
-
-        #endregion
-
-        #region Style
-        /// <summary>
-        /// 行高
-        /// </summary>
-        int m_LineHeight;
-        /// <summary>
-        /// 边框高度
-        /// </summary>
-        int m_BorderHeight;
-
-        /// <summary>
-        /// log列表行高
-        /// </summary>
-        private int RowHeight => (LogStyleLineCount * m_LineHeight) + m_BorderHeight;
-
-        public void RefreshPageStyle()
-        {
-
-        }
-
-        /// <summary>
-        /// 刷新列表视图
-        /// </summary>
-        void UpdateListView()
-        {
-            m_LineHeight = Mathf.RoundToInt(ErrorStyle.lineHeight);
-            m_BorderHeight = ErrorStyle.border.top + ErrorStyle.border.bottom;
-            UpdateListView();
-
-            int newRowHeight = RowHeight;
-
-            // We reset the scroll list to auto scrolling whenever the log entry count is modified
-            logListView.rowHeight = 32;
-            logListView.row = -1;
-            logListView.scrollPos.y = EntryWrapped.Instence.GetCount() * newRowHeight;
-
-            Repaint();
         }
         #endregion
 
@@ -482,7 +518,6 @@ namespace ConsoleTiny
 
         #endregion 
 
-
         #region 点击索引到游戏物体
         /// <summary>
         /// 上一个选中的索引
@@ -490,7 +525,7 @@ namespace ConsoleTiny
         private int m_ActiveInstanceID = 0;
 
         /// <summary>
-        /// 设置点击入口，如果该输出包含游戏物体信息，选中输出目标消息的游戏物体
+        /// 设置点击入口，如果该输出包含游戏物体信息，选中输出目标消息的游戏物体，并显示选中特效
         /// 如果反复选择同一个输出，或目标游戏物体相同，则不会重复选择
         /// </summary>
         /// <param name="selectedIndex">选中的信息的id</param>
@@ -512,7 +547,10 @@ namespace ConsoleTiny
         }
         #endregion
 
-
+        /// <summary>
+        /// 查找文件
+        /// </summary>
+        /// <param name="e"></param>
         private void SearchField(Event e)
         {
             string searchBarName = "SearchFilter";
@@ -582,6 +620,12 @@ namespace ConsoleTiny
             }
         }
 
+        /// <summary>
+        /// 设置了过滤历史的回调函数
+        /// </summary>
+        /// <param name="userData"></param>
+        /// <param name="options"></param>
+        /// <param name="selected"></param>
         private void OnSetFilteringHistoryCallback(object userData, string[] options, int selected)
         {
             EntryWrapped.Instence.searchString = options[selected];

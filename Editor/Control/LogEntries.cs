@@ -13,12 +13,18 @@ namespace ConsoleTiny
         public string lines;
         public string text;
         public string pure; // remove tag
-        public string lower;//pure的小写格式
+        /// <summary>
+        /// pure的小写格式
+        /// </summary>
+        public string lower;
         public int entryCount;
         public int searchIndex;
         public int searchEndIndex;
         public ConsoleFlags flags;
         public LogEntry entry;
+        /// <summary>
+        /// 所有的堆栈跟踪信息
+        /// </summary>
         public List<StacktraceLineInfo> stacktraceLineInfos;
         public List<int> tagPosInfos;
     }

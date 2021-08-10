@@ -208,7 +208,7 @@ namespace ConsoleTiny
             #endregion
             EditorGUILayout.Space();//插入空格
 
-            #region collapse按钮
+            #region collapse开关
             bool wasCollapsed = EntryWrapped.Instence.collapse;
             EntryWrapped.Instence.collapse = GUILayout.Toggle(wasCollapsed, CollapseLabel, MiniButton);
             bool collapsedChanged = wasCollapsed != EntryWrapped.Instence.collapse;
@@ -219,27 +219,27 @@ namespace ConsoleTiny
             }
             #endregion
 
-            #region ClearOnPlay按钮
+            #region ClearOnPlay开关
             SetFlag(ConsoleFlags.ClearOnPlay, GUILayout.Toggle(HasFlag(ConsoleFlags.ClearOnPlay), ClearOnPlayLabel, MiniButton));
             #endregion
 
-            #region ClearOnBuild
+            #region ClearOnBuild开关
 #if UNITY_2019_1_OR_NEWER
             SetFlag(ConsoleFlags.ClearOnBuild, GUILayout.Toggle(HasFlag(ConsoleFlags.ClearOnBuild), Constants.ClearOnBuildLabel, Constants.MiniButton));
 #endif
             #endregion
 
-            #region ErrorPause
+            #region ErrorPause开关
             SetFlag(ConsoleFlags.ErrorPause, GUILayout.Toggle(HasFlag(ConsoleFlags.ErrorPause), ErrorPauseLabel, MiniButton));//报错时暂停按钮
             #endregion
 
-            #region AttachToPlayer
+            #region AttachToPlayer下拉菜单
             ConnectionGUILayout.AttachToPlayerDropdown(m_ConsoleAttachToPlayerState, EditorStyles.toolbarDropDown);//AttachToPlayer下拉按钮
             #endregion
 
             EditorGUILayout.Space();//插入空格
 
-            #region 开发模式按钮
+            #region 开发模式开关
             if (m_DevBuild)//检查是不是开发人员模式
             {
                 GUILayout.FlexibleSpace();//插入智能空间
@@ -255,7 +255,7 @@ namespace ConsoleTiny
             SearchField(e);//添加搜索条
             #endregion
 
-            #region LogButton
+            #region Log开关，Worring开关，Error开关
             int errorCount = 0;//报错数量
             int warningCount = 0;//错误数量
             int logCount = 0;//日志数量
@@ -271,6 +271,7 @@ namespace ConsoleTiny
             EntryWrapped.Instence.SetFlag((int)ConsoleFlags.LogLevelError, setErrorFlag);//设置报错是否输出
             #endregion
 
+            #region FirstError按钮
             if (GUILayout.Button(new GUIContent(errorCount > 0 ? iconFirstErrorSmall : iconFirstErrorMono, FirstErrorLabel), MiniButton))
             {
                 int firstErrorIndex = EntryWrapped.Instence.GetFirstErrorEntryIndex();
@@ -280,6 +281,7 @@ namespace ConsoleTiny
                     EntryWrapped.Instence.searchFrame = true;
                 }
             }
+            #endregion
 
             GUILayout.EndHorizontal();//关闭横向布局
             #endregion
@@ -369,14 +371,11 @@ namespace ConsoleTiny
                 #endregion
 
                 #region 确保选中项已经更新
-                if (logListView.totalRows == 0 || logListView.row >= logListView.totalRows || logListView.row < 0)
+                if (logListView.totalRows != 0 && logListView.row < logListView.totalRows && logListView.row >= 0)
                 {
-                }
-                else
-                {
-                    if (logListView.selectionChanged)
+                    if (logListView.selectionChanged)//如果选中项发生了变化
                     {
-                        SetActiveEntry(logListView.row);
+                        SetActiveEntry(logListView.row);//设置选中入口
                     }
                 }
                 #endregion
@@ -390,6 +389,7 @@ namespace ConsoleTiny
                 #endregion
 
                 #region
+                //TODO:不懂
                 if (e.type != EventType.Layout && ListViewGUI.ilvState.rectHeight != 1)//
                 {
                     ms_LVHeight = ListViewGUI.ilvState.rectHeight;
@@ -412,7 +412,7 @@ namespace ConsoleTiny
                 #endregion
             }
 
-
+            #region 统一处理
             #region 延迟回调防止死锁
             // Prevent dead locking in EditorMonoConsole by delaying callbacks (which can log to the console) until after LogEntries.EndGettingEntries() has been
             // called (this releases the mutex in EditorMonoConsole so logging again is allowed). Fix for case 1081060.
@@ -423,11 +423,13 @@ namespace ConsoleTiny
             }
             #endregion
 
+            //TODO：回头注释看一下
             EditorGUIUtility.SetIconSize(Vector2.zero);
 
             StacktraceListView(e, tempContent);
 
             SplitterGUILayout.EndVerticalSplit();
+            #endregion
             #endregion
         }
         #endregion
@@ -531,17 +533,17 @@ namespace ConsoleTiny
         /// <param name="selectedIndex">选中的信息的id</param>
         void SetActiveEntry(int selectedIndex)
         {
-            messageListView.row = -1;
-            messageListView.scrollPos.y = 0;
-            if (selectedIndex != -1)
+            messageListView.row = -1;//详细信息列表试图的选中行为-1
+            messageListView.scrollPos.y = 0;//详细信息列表滚动到最顶
+            if (selectedIndex != -1)//如果选择了目标
             {
-                var instanceID = EntryWrapped.Instence.SetSelectedEntry(selectedIndex);
+                var instanceID = EntryWrapped.Instence.SetSelectedEntry(selectedIndex);//设置选择目标并获取目标实例的ID
                 // ping object referred by the log entry
-                if (m_ActiveInstanceID != instanceID)
+                if (m_ActiveInstanceID != instanceID)//如果之前选的实例的ID和当前实例的ID不同
                 {
-                    m_ActiveInstanceID = instanceID;
-                    if (instanceID != 0)
-                        EditorGUIUtility.PingObject(instanceID);
+                    m_ActiveInstanceID = instanceID;//同步
+                    if (instanceID != 0)//如果可以找到目标unity游戏物体
+                        EditorGUIUtility.PingObject(instanceID);//ping这个物体，选中并触发选中特效
                 }
             }
         }
@@ -639,7 +641,7 @@ namespace ConsoleTiny
 
 
         /// <summary>
-        /// 跟踪堆栈
+        /// 跟踪堆栈页面
         /// </summary>
         /// <param name="e"></param>
         /// <param name="tempContent"></param>

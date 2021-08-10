@@ -102,6 +102,9 @@ namespace ConsoleTiny
         private bool m_Collapse;
         private int[] m_TypeCounts = new[] { 0, 0, 0 };
         private int m_LastEntryCount = -1;
+        /// <summary>
+        /// 被选择的入口的信息
+        /// </summary>
         private EntryInfo m_SelectedInfo;
         /// <summary>
         /// 所有入口信息
@@ -185,62 +188,80 @@ namespace ConsoleTiny
             logCount = m_TypeCounts[2];
         }
 
+        /// <summary>
+        /// 设置选择的入口
+        /// </summary>
+        /// <param name="row">选择的行</param>
+        /// <returns>入口实例的ID</returns>
         public int SetSelectedEntry(int row)
         {
-            m_SelectedInfo = null;
-            if (row < 0 || row >= m_FilteredInfos.Count)
+            m_SelectedInfo = null;//清空原本的目标
+            if (row < 0 || row >= m_FilteredInfos.Count)//如果选择了不合法的值
             {
-                return 0;
+                return 0;//直接返回
             }
 
-            m_SelectedInfo = m_FilteredInfos[row];
-            return m_SelectedInfo.entry.instanceID;
+            m_SelectedInfo = m_FilteredInfos[row];//设置选择的值
+            return m_SelectedInfo.entry.instanceID;//返回目标ID
         }
 
+        /// <summary>
+        /// 检查某个入口是否被选中
+        /// </summary>
+        /// <param name="row">要判断的入口</param>
+        /// <returns>是否被选中</returns>
         public bool IsEntrySelected(int row)
         {
-            if (row < 0 || row >= m_FilteredInfos.Count)
+            if (row < 0 || row >= m_FilteredInfos.Count)//如果传入的入口不合法
             {
-                return false;
+                return false;//直接返回
             }
 
-            return m_FilteredInfos[row] == m_SelectedInfo;
+            return m_FilteredInfos[row] == m_SelectedInfo;//返回目标行是否是当前选中的行
         }
 
+        /// <summary>
+        /// 检查当前选中的入口是否显示
+        /// </summary>
+        /// <returns>显示：true</returns>
         public bool IsSelectedEntryShow()
         {
-            if (m_SelectedInfo != null)
-            {
-                return m_FilteredInfos.Contains(m_SelectedInfo);
-            }
-            return false;
+            return m_SelectedInfo != null && m_FilteredInfos.Contains(m_SelectedInfo);//如果 选中入口不为空且入口在被过滤后的列表中返回true
         }
 
+        /// <summary>
+        /// 获取当前选中入口的行数
+        /// </summary>
+        /// <returns></returns>
         public int GetSelectedEntryIndex()
         {
-            if (m_SelectedInfo != null)
+            if (m_SelectedInfo != null)//检查当前选中行是否为空
             {
-                for (int i = 0; i < m_FilteredInfos.Count; i++)
+                for (int i = 0; i < m_FilteredInfos.Count; i++)//遍历所有的行
                 {
-                    if (m_FilteredInfos[i] == m_SelectedInfo)
+                    if (m_FilteredInfos[i] == m_SelectedInfo)//如果目标行的入口和当前入口相等
                     {
-                        return i;
+                        return i;//返回行号
                     }
                 }
             }
-            return -1;
+            return -1;//如果当前入口为空或在所有行中没有当前入口返回-1
         }
 
+        /// <summary>
+        /// 获取过滤后第一个报错信息的行数
+        /// </summary>
+        /// <returns>首个报错的行数</returns>
         public int GetFirstErrorEntryIndex()
         {
-            for (int i = 0; i < m_FilteredInfos.Count; i++)
+            for (int i = 0; i < m_FilteredInfos.Count; i++)//遍历所有的行
             {
-                if (m_FilteredInfos[i].flags == ConsoleFlags.LogLevelError)
+                if (m_FilteredInfos[i].flags == ConsoleFlags.LogLevelError)//找到第一个报错信息
                 {
-                    return i;
+                    return i;//返回行数
                 }
             }
-            return -1;
+            return -1;//如果没有找到，返回-1
         }
 
         /// <summary>
@@ -901,66 +922,72 @@ namespace ConsoleTiny
         /// <returns></returns>
         public bool StacktraceListView_IsExist()
         {
-            if (m_SelectedInfo == null || m_SelectedInfo.stacktraceLineInfos == null)
-            {
-                return false;
-            }
-            return true;
+            return m_SelectedInfo != null && m_SelectedInfo.stacktraceLineInfos != null;//如果选择的入口不为空且选择的入口的跟踪堆栈信息不为空：返回true
         }
 
+        /// <summary>
+        /// 获取当前入口跟踪堆栈信息的数量
+        /// </summary>
+        /// <returns>跟踪堆栈信息的数量</returns>
         public int StacktraceListView_GetCount()
         {
-            if (StacktraceListView_IsExist() && IsSelectedEntryShow())
-            {
-                return m_SelectedInfo.stacktraceLineInfos.Count;
-            }
-
-            return 0;
+            return StacktraceListView_IsExist() && IsSelectedEntryShow() ? m_SelectedInfo.stacktraceLineInfos.Count : 0;
         }
 
+        /// <summary>
+        /// 获取目标行入口跟踪堆栈的文本信息
+        /// </summary>
+        /// <param name="row">目标入口</param>
+        /// <returns>目标入口的文本信息</returns>
         public string StacktraceListView_GetLine(int row)
         {
-            if (StacktraceListView_IsExist())
-            {
-                return m_SelectedInfo.stacktraceLineInfos[row].text;
-            }
-
-            return String.Empty;
+            return StacktraceListView_IsExist() ? m_SelectedInfo.stacktraceLineInfos[row].text : string.Empty;
         }
 
+        /// <summary>
+        /// 显示跟踪堆栈，获取最大宽度
+        /// </summary>
+        /// <param name="tempContent">用于包含目标文本的UI内容</param>
+        /// <param name="tempStyle">计算包含UI内容的UI样式</param>
+        /// <returns>使用tempContent包含 最长的跟踪堆栈文本 时，所使用的tempStyle的宽度</returns>
         public float StacktraceListView_GetMaxWidth(GUIContent tempContent, GUIStyle tempStyle)
         {
-            if (m_SelectedInfo == null || !IsSelectedEntryShow())
+            if (m_SelectedInfo == null || !IsSelectedEntryShow())//如果没有选择入口或选择的入口没有显示
             {
-                return 1f;
+                return 1f;//直接返回
             }
 
-            if (!StacktraceListView_IsExist())
+            if (!StacktraceListView_IsExist())//如果不存在目标跟踪信息
             {
-                StacktraceListView_Parse(m_SelectedInfo);
+                StacktraceListView_Parse(m_SelectedInfo);//解析跟踪堆栈信息
             }
 
-            var maxLine = -1;
-            var maxLineLen = -1;
-            for (int i = 0; i < m_SelectedInfo.stacktraceLineInfos.Count; i++)
+            var maxLine = -1;//最长的行
+            var maxLineLen = -1;//最长的行的长度
+            for (int i = 0; i < m_SelectedInfo.stacktraceLineInfos.Count; i++)//遍历所有的行
             {
-                if (maxLineLen < m_SelectedInfo.stacktraceLineInfos[i].plain.Length)
+                if (maxLineLen < m_SelectedInfo.stacktraceLineInfos[i].plain.Length)//如果之前的最长的行的长度小于当前行长度
                 {
-                    maxLineLen = m_SelectedInfo.stacktraceLineInfos[i].plain.Length;
-                    maxLine = i;
+                    maxLineLen = m_SelectedInfo.stacktraceLineInfos[i].plain.Length;//设置最长行长度为当前行长度
+                    maxLine = i;//设置最长行为当前行
                 }
             }
 
-            float maxWidth = 1f;
-            if (maxLine != -1)
+            float maxWidth = 1f;//最大宽度
+            if (maxLine != -1)//如果有最长行
             {
-                tempContent.text = m_SelectedInfo.stacktraceLineInfos[maxLine].plain;
-                maxWidth = tempStyle.CalcSize(tempContent).x;
+                tempContent.text = m_SelectedInfo.stacktraceLineInfos[maxLine].plain;//设置目标UIContent的文本为最长文本
+                maxWidth = tempStyle.CalcSize(tempContent).x;//计算样式的最大宽度
             }
 
-            return maxWidth;
+            return maxWidth;//返回最大宽度
         }
 
+        #region 解析跟踪堆栈信息
+        /// <summary>
+        /// 解析跟踪堆栈信息
+        /// </summary>
+        /// <param name="entryInfo">目标入口</param>
         private void StacktraceListView_Parse(EntryInfo entryInfo)
         {
             var lines = entryInfo.entry.condition.Split(new char[] { '\n' }, StringSplitOptions.None);
@@ -1008,6 +1035,15 @@ namespace ConsoleTiny
             }
         }
 
+        /// <summary>
+        /// 解析C#跟踪堆栈信息
+        /// </summary>
+        /// <param name="line"></param>
+        /// <param name="info"></param>
+        /// <param name="textBeforeFilePath"></param>
+        /// <param name="fileInBuildSlave"></param>
+        /// <param name="uriRoot"></param>
+        /// <returns></returns>
         private bool StacktraceListView_Parse_CSharp(string line, StacktraceLineInfo info, string textBeforeFilePath, string fileInBuildSlave, Uri uriRoot)
         {
             int methodLastIndex = line.IndexOf('(');
@@ -1130,6 +1166,16 @@ namespace ConsoleTiny
             return true;
         }
 
+        /// <summary>
+        /// 解析Lua跟踪堆栈信息
+        /// </summary>
+        /// <param name="line"></param>
+        /// <param name="info"></param>
+        /// <param name="luaCFunction"></param>
+        /// <param name="luaMethodBefore"></param>
+        /// <param name="luaFileExt"></param>
+        /// <param name="luaAssetPath"></param>
+        /// <returns></returns>
         private bool StacktraceListView_Parse_Lua(string line, StacktraceLineInfo info, string luaCFunction, string luaMethodBefore, string luaFileExt, string luaAssetPath)
         {
             if (string.IsNullOrEmpty(line) || line[0] != '	')
@@ -1197,6 +1243,7 @@ namespace ConsoleTiny
 
             return true;
         }
+        #endregion
 
         public bool StacktraceListView_CanOpen(int stacktraceLineInfoIndex)
         {

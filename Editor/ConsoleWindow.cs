@@ -51,6 +51,11 @@ namespace ConsoleTiny
         /// </summary>
         private string[] m_SearchHistory = new[] { "" };
 
+        /// <summary>
+        /// 用于判断页面是否需要刷新，默认是double最大值
+        /// 当需要刷新时，m_NextRepaint会记录发生变化的时间
+        /// OnInspectorUpdate将会计算时间差，刷新页面并还原m_NextRepaint
+        /// </summary>
         private double m_NextRepaint = double.MaxValue;
 
         SplitterState spl = new SplitterState(new float[] { 70, 30 }, new int[] { 32, 32 }, null);
@@ -105,21 +110,21 @@ namespace ConsoleTiny
         #region 生命周期
         void OnEnable()
         {
-            ms_ConsoleWindow = this;
-            titleContent.text = "Console T";
+            ms_ConsoleWindow = this;//实现类似单例的效果
+            titleContent.text = "Console T";//设置窗口名
 
-            Application.logMessageReceived += DoLogChanged;
+            Application.logMessageReceived += DoLogChanged;//添加打印输出的回调函数
 
-            position = new Rect(200, 200, 800, 400);
-            logListView = new ListViewState(0, 0);
-            messageListView = new ListViewState(0, 14);
-            m_StacktraceLineContextClickRow = -1;
+            position = new Rect(200, 200, 800, 400);//设置窗口起始位置
+            logListView = new ListViewState(0, 0);//清空信息列表
+            messageListView = new ListViewState(0, 14);//清空详细信息列表
+            m_StacktraceLineContextClickRow = -1;//设置当前未选择跟踪堆栈的行
 
 
-            if (m_ConsoleAttachToPlayerState == null)
-                m_ConsoleAttachToPlayerState = new ConsoleAttachToPlayerState(this);
+            if (m_ConsoleAttachToPlayerState == null)//如果未建立与玩家连接
+                m_ConsoleAttachToPlayerState = new ConsoleAttachToPlayerState(this);//建立与玩家连接
 
-            m_DevBuild = Unsupported.IsDeveloperMode();
+            m_DevBuild = Unsupported.IsDeveloperMode();//检查当前是否未开发者模式（进入开发者模式：UnityEditor.EditorPrefs.SetBool("DeveloperMode", true);）
             EntryWrapped.Instence.searchHistory = m_SearchHistory;
         }
 
@@ -149,10 +154,6 @@ namespace ConsoleTiny
             }
         }
 
-
-        /// <summary>
-        /// 主要的控制台渲染在这里进行
-        /// </summary>
         void OnGUI()
         {
             Event e = Event.current;//获取当前正在处理的事件
@@ -412,7 +413,6 @@ namespace ConsoleTiny
                 #endregion
             }
 
-            #region 统一处理
             #region 延迟回调防止死锁
             // Prevent dead locking in EditorMonoConsole by delaying callbacks (which can log to the console) until after LogEntries.EndGettingEntries() has been
             // called (this releases the mutex in EditorMonoConsole so logging again is allowed). Fix for case 1081060.
@@ -423,13 +423,11 @@ namespace ConsoleTiny
             }
             #endregion
 
-            //TODO：回头注释看一下
-            EditorGUIUtility.SetIconSize(Vector2.zero);
+            EditorGUIUtility.SetIconSize(Vector2.zero);//设置Icon显示为：自适应大小
 
-            StacktraceListView(e, tempContent);
+            StacktraceListView(e, tempContent);//绘制跟踪堆栈列表
 
-            SplitterGUILayout.EndVerticalSplit();
-            #endregion
+            SplitterGUILayout.EndVerticalSplit();//结束纵向布局
             #endregion
         }
         #endregion
@@ -641,95 +639,99 @@ namespace ConsoleTiny
 
 
         /// <summary>
-        /// 跟踪堆栈页面
+        /// 绘制跟踪堆栈页面
+        /// 这个函数仅由OnGUI调用
         /// </summary>
-        /// <param name="e"></param>
+        /// <param name="e">当前OnGUI处理的事件</param>
         /// <param name="tempContent"></param>
         private void StacktraceListView(Event e, GUIContent tempContent)
         {
-            float maxWidth = EntryWrapped.Instence.StacktraceListView_GetMaxWidth(tempContent, MessageStyle);
-
-            if (m_StacktraceLineContextClickRow != -1)
+            if (m_StacktraceLineContextClickRow != -1)//如果选择了跟踪堆栈的行
             {
-                var stacktraceLineInfoIndex = m_StacktraceLineContextClickRow;
-                m_StacktraceLineContextClickRow = -1;
-                GenericMenu menu = new GenericMenu();
-                if (EntryWrapped.Instence.StacktraceListView_CanOpen(stacktraceLineInfoIndex))
+                var stacktraceLineInfoIndex = m_StacktraceLineContextClickRow;//保存选中行信息
+                m_StacktraceLineContextClickRow = -1;//清除选中信息
+                GenericMenu menu = new GenericMenu();//创建一个邮件菜单
+                if (EntryWrapped.Instence.StacktraceListView_CanOpen(stacktraceLineInfoIndex))//如果入口可以打开
                 {
-                    menu.AddItem(new GUIContent("Open"), false, EntryWrapped.Instence.StacktraceListView_Open, stacktraceLineInfoIndex);
-                    menu.AddSeparator("");
-                    if (EntryWrapped.Instence.StacktraceListView_CanWrapper(stacktraceLineInfoIndex))
+                    menu.AddItem(new GUIContent("Open"), false, EntryWrapped.Instence.StacktraceListView_Open, stacktraceLineInfoIndex);//添加一个 打开 按钮
+                    menu.AddSeparator("");//创建分隔符
+                    if (EntryWrapped.Instence.StacktraceListView_CanWrapper(stacktraceLineInfoIndex))//如果入口可以被包装
                     {
-                        menu.AddItem(new GUIContent("Wrapper"), EntryWrapped.Instence.StacktraceListView_IsWrapper(stacktraceLineInfoIndex), EntryWrapped.Instence.StacktraceListView_Wrapper, stacktraceLineInfoIndex);
+                        menu.AddItem(new GUIContent("Wrapper"), EntryWrapped.Instence.StacktraceListView_IsWrapper(stacktraceLineInfoIndex), EntryWrapped.Instence.StacktraceListView_Wrapper, stacktraceLineInfoIndex);//添加包装按钮
                     }
                 }
-                menu.AddItem(new GUIContent("Copy"), false, EntryWrapped.Instence.StacktraceListView_Copy, stacktraceLineInfoIndex);
-                menu.AddItem(new GUIContent("Copy All"), false, EntryWrapped.Instence.StacktraceListView_CopyAll);
-                menu.ShowAsContext();
+                menu.AddItem(new GUIContent("Copy"), false, EntryWrapped.Instence.StacktraceListView_Copy, stacktraceLineInfoIndex);//添加复制按钮
+                menu.AddItem(new GUIContent("Copy All"), false, EntryWrapped.Instence.StacktraceListView_CopyAll);//添加复制所有按钮
+                menu.ShowAsContext();//当鼠标右键点击时显示该菜单
             }
 
+            float maxWidth = EntryWrapped.Instence.StacktraceListView_GetMaxWidth(tempContent, MessageStyle);//获取跟踪堆栈所有行的最大宽度
             int id = GUIUtility.GetControlID(0);
-            int rowDoubleClicked = -1;
-            int selectedRow = -1;
-            bool openSelectedItem = false;
-            messageListView.totalRows = EntryWrapped.Instence.StacktraceListView_GetCount();
-            GUILayout.BeginHorizontal(Box);
-            messageListView.scrollPos = EditorGUILayout.BeginScrollView(messageListView.scrollPos);
+            int rowDoubleClicked = -1;//双击的行
+            int selectedRow = -1;//选择的行
+            bool openSelectedItem = false;//是否要打开选中项
+
+            GUILayout.BeginHorizontal(Box);//开启一个纵向布局
+
+            #region ListView Layout
+            messageListView.totalRows = EntryWrapped.Instence.StacktraceListView_GetCount();//获取跟踪堆栈总行数
+            messageListView.scrollPos = EditorGUILayout.BeginScrollView(messageListView.scrollPos);//开启一个自动滚动的试图
             ListViewGUI.ilvState.beganHorizontal = true;
             messageListView.draggedFrom = -1;
             messageListView.draggedTo = -1;
-            messageListView.fileNames = (string[])null;
-            Rect rect = GUILayoutUtility.GetRect(maxWidth,
-                (float)(messageListView.totalRows * messageListView.rowHeight + 3));
-            foreach (ListViewElement el in ListViewGUI.DoListView(rect, messageListView, null, string.Empty))
+            messageListView.fileNames = null;
+            #endregion
+
+            Rect rect = GUILayoutUtility.GetRect(maxWidth, messageListView.totalRows * messageListView.rowHeight + 3);//获取需要显示的范围
+            foreach (ListViewElement el in ListViewGUI.DoListView(rect, messageListView, null, string.Empty))//遍历所有列表项
             {
-                if (e.type == EventType.MouseDown && (e.button == 0 || e.button == 1) && el.position.Contains(e.mousePosition))
+                if (e.type == EventType.MouseDown && el.position.Contains(e.mousePosition) && (e.button == 0 || e.button == 1))//如果点中了该项
                 {
-                    if (e.button == 1)
+                    if (e.button == 1)//如果是右键点击
                     {
-                        messageListView.row = el.row;
-                        selectedRow = messageListView.row;
-                        m_StacktraceLineContextClickRow = selectedRow;
-                        continue;
+                        messageListView.row = el.row;//设置详细信息列表的选中行为当前行
+                        selectedRow = messageListView.row;//设置选中行
+                        m_StacktraceLineContextClickRow = selectedRow;//设置选中行
+                        continue;//右键不能双击打开
                     }
 
-                    selectedRow = messageListView.row;
-                    if (e.clickCount == 2)
-                        openSelectedItem = true;
+                    selectedRow = messageListView.row;//设置选中行
+                    if (e.clickCount == 2)//如果双击
+                        openSelectedItem = true;//准备打开目标项目
                 }
-                else if (e.type == EventType.Repaint)
+                else if (e.type == EventType.Repaint)//如果事件是重绘事件
                 {
-                    tempContent.text = EntryWrapped.Instence.StacktraceListView_GetLine(el.row);
-                    rect = el.position;
-                    if (rect.width < maxWidth)
+                    tempContent.text = EntryWrapped.Instence.StacktraceListView_GetLine(el.row);//获取跟踪堆栈的文本信息
+                    rect = el.position;//设置重绘范围为目标重绘范围
+                    if (rect.width < maxWidth)//设置最大宽度
                     {
                         rect.width = maxWidth;
                     }
-                    MessageStyle.Draw(rect, tempContent, id, messageListView.row == el.row);
+                    MessageStyle.Draw(rect, tempContent, id, messageListView.row == el.row);//绘制目标范围
                 }
             }
 
-            // Open entry using return key
-            if ((GUIUtility.keyboardControl == messageListView.ID) && (e.type == EventType.KeyDown) && (e.keyCode == KeyCode.Return) && (messageListView.row != 0))
+
+            if ((GUIUtility.keyboardControl == messageListView.ID) && (e.type == EventType.KeyDown) && (e.keyCode == KeyCode.Return) && (messageListView.row != 0))//如果按下的键是回车键
             {
-                selectedRow = messageListView.row;
-                openSelectedItem = true;
+                selectedRow = messageListView.row;//设置选中行
+                openSelectedItem = true;//准备打开目标项目
             }
 
-            if (openSelectedItem)
+            if (openSelectedItem)//如果要打开目标界面
             {
-                rowDoubleClicked = selectedRow;
-                e.Use();
+                rowDoubleClicked = selectedRow;//设置要打开的页面
+                e.Use();//停止事件路由
             }
 
-            if (m_StacktraceLineContextClickRow != -1)
+            if (m_StacktraceLineContextClickRow != -1)//如果点击
             {
                 Repaint();
             }
 
-            if (rowDoubleClicked != -1)
+            if (rowDoubleClicked != -1)//如果要打开目标文件
             {
-                EntryWrapped.Instence.StacktraceListView_Open(rowDoubleClicked);
+                EntryWrapped.Instence.StacktraceListView_Open(rowDoubleClicked);//打开目标文件
             }
         }
 

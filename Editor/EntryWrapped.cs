@@ -90,10 +90,28 @@ namespace ConsoleTiny
 
         public bool searchFrame { get; set; }
 
+
+        //TODO:这里暂时不知道为什么要用两个来处理，估计是为了避免重读
+        /// <summary>
+        /// 控制台特性标识
+        /// </summary>
         private int m_ConsoleFlags;
+        /// <summary>
+        /// 之后的控制台特性标识
+        /// </summary>
         private int m_ConsoleFlagsComing;
+        /// <summary>
+        /// 选择的字符串
+        /// </summary>
         private string m_SearchString;
+        /// <summary>
+        /// 之后的选择的字符串
+        /// </summary>
         private string m_SearchStringComing;
+
+        /// <summary>
+        /// 上次选择的时间
+        /// </summary>
         private double m_LastSearchStringTime;
 
         private bool m_Init;
@@ -395,22 +413,29 @@ namespace ConsoleTiny
             }
         }
 
+        /// <summary>
+        /// 检查是否初始化
+        /// </summary>
         private void CheckInit()
         {
-            if (m_Init)
+            if (m_Init)//如果已经初始胡
             {
-                return;
+                return;//直接返回
             }
 
-            m_Init = true;
-            m_ConsoleFlagsComing = EditorPrefs.GetInt(kPrefConsoleFlags, 896);
-            m_ShowTimestamp = EditorPrefs.GetBool(kPrefShowTimestamp, false);
-            m_Collapse = EditorPrefs.GetBool(kPrefCollapse, false);
-            m_WrapperInfos.Clear();
-            m_WrapperInfos.AddRange(EditorPrefs.GetString(kPrefWrappers, String.Empty).Split('\n'));
-            m_CustomFilters.Load();
+            m_Init = true;//设置已经初始化
+            m_ConsoleFlagsComing = EditorPrefs.GetInt(kPrefConsoleFlags, 896);//设置稍后需要修改的控制台特性标识
+            m_ShowTimestamp = EditorPrefs.GetBool(kPrefShowTimestamp, false);//设置是否显示时间
+            m_Collapse = EditorPrefs.GetBool(kPrefCollapse, false);//设置是否折叠
+            m_WrapperInfos.Clear();//清空所有信息
+            m_WrapperInfos.AddRange(EditorPrefs.GetString(kPrefWrappers, string.Empty).Split('\n'));//获取包装信息
+            m_CustomFilters.Load();//加载自定义过滤器
         }
 
+        /// <summary>
+        /// 检查选择字符串是否发生改变
+        /// </summary>
+        /// <returns>是否发生了改变</returns>
         private bool CheckSearchStringChanged()
         {
             if (m_LastSearchStringTime > 1f && m_LastSearchStringTime < EditorApplication.timeSinceStartup)
@@ -1245,54 +1270,68 @@ namespace ConsoleTiny
         }
         #endregion
 
+        /// <summary>
+        /// 检查目标入口是否可以打开
+        /// </summary>
+        /// <param name="stacktraceLineInfoIndex">目标入口行号</param>
+        /// <returns>是否可以打开</returns>
         public bool StacktraceListView_CanOpen(int stacktraceLineInfoIndex)
         {
-            if (!StacktraceListView_IsExist())
+            if (!StacktraceListView_IsExist())//如果没有跟踪堆栈信息
             {
-                return false;
+                return false;//不能打开
             }
 
-            if (stacktraceLineInfoIndex < m_SelectedInfo.stacktraceLineInfos.Count)
+            if (stacktraceLineInfoIndex < m_SelectedInfo.stacktraceLineInfos.Count)//如果选择的目标是合法的
             {
-                return !string.IsNullOrEmpty(m_SelectedInfo.stacktraceLineInfos[stacktraceLineInfoIndex].filePath);
+                return !string.IsNullOrEmpty(m_SelectedInfo.stacktraceLineInfos[stacktraceLineInfoIndex].filePath);//返回目标是否包含文件地址
             }
-            return false;
+            return false;//不能打开
         }
-
+        /// <summary>
+        /// 检查目标入口是否可以被包装
+        /// </summary>
+        /// <param name="stacktraceLineInfoIndex">目标入口行号</param>
+        /// <returns>是否可以被包装</returns>
         public bool StacktraceListView_CanWrapper(int stacktraceLineInfoIndex)
         {
-            if (!StacktraceListView_IsExist())
+            if (!StacktraceListView_IsExist())//如果没有跟踪堆栈信息
             {
-                return false;
+                return false;//不能包装
             }
 
-            if (stacktraceLineInfoIndex < m_SelectedInfo.stacktraceLineInfos.Count)
+            if (stacktraceLineInfoIndex < m_SelectedInfo.stacktraceLineInfos.Count)//如果选择的目标是合法的
             {
-                return !string.IsNullOrEmpty(m_SelectedInfo.stacktraceLineInfos[stacktraceLineInfoIndex].wrapper);
+                return !string.IsNullOrEmpty(m_SelectedInfo.stacktraceLineInfos[stacktraceLineInfoIndex].wrapper);//返回目标是否包含包装信息
             }
-            return false;
+            return false;//不能包装
         }
-
+        /// <summary>
+        /// 检查目标入口是否已经被包装
+        /// </summary>
+        /// <param name="stacktraceLineInfoIndex">目标入口行号</param>
+        /// <returns>是否可以被包装</returns>
         public bool StacktraceListView_IsWrapper(int stacktraceLineInfoIndex)
         {
-            if (!StacktraceListView_IsExist())
+            if (!StacktraceListView_IsExist())//如果没有跟踪堆栈信息
             {
-                return false;
+                return false;//没有包装
             }
 
-            if (stacktraceLineInfoIndex < m_SelectedInfo.stacktraceLineInfos.Count)
+            if (stacktraceLineInfoIndex < m_SelectedInfo.stacktraceLineInfos.Count)//如果选择的目标是合法的
             {
-                return !string.IsNullOrEmpty(m_SelectedInfo.stacktraceLineInfos[stacktraceLineInfoIndex].wrapper) &&
-                    m_WrapperInfos.Contains(m_SelectedInfo.stacktraceLineInfos[stacktraceLineInfoIndex].wrapper);
+                return !string.IsNullOrEmpty(m_SelectedInfo.stacktraceLineInfos[stacktraceLineInfoIndex].wrapper) && m_WrapperInfos.Contains(m_SelectedInfo.stacktraceLineInfos[stacktraceLineInfoIndex].wrapper);//目标入口的包装不为空且包装列表中包含该目标入口
             }
-            return false;
+            return false;//没有包装
         }
-
+        /// <summary>
+        /// 双击打开
+        /// </summary>
         public void StacktraceListView_RowGotDoubleClicked()
         {
-            if (!StacktraceListView_IsExist())
+            if (!StacktraceListView_IsExist())//如果没有跟踪堆栈
             {
-                return;
+                return;//直接返回
             }
 
             for (var i = 0; i < m_SelectedInfo.stacktraceLineInfos.Count; i++)
@@ -1308,12 +1347,15 @@ namespace ConsoleTiny
                 }
             }
         }
-
+        /// <summary>
+        /// 打开跟踪堆栈文件
+        /// </summary>
+        /// <param name="userData">目标入口行号</param>
         public void StacktraceListView_Open(object userData)
         {
-            if (!StacktraceListView_IsExist())
+            if (!StacktraceListView_IsExist())//如果没有跟踪堆栈
             {
-                return;
+                return;//直接返回
             }
 
             var stacktraceLineInfoIndex = (int)userData;
@@ -1324,39 +1366,45 @@ namespace ConsoleTiny
                 ScriptAssetOpener.OpenAsset(filePath, lineNum);
             }
         }
-
+        /// <summary>
+        /// 将一条新的跟踪堆栈信息打包到EditorPrefs数据中
+        /// </summary>
+        /// <param name="userData">行号</param>
         public void StacktraceListView_Wrapper(object userData)
         {
-            if (!StacktraceListView_IsExist())
+            if (!StacktraceListView_IsExist())//如果不存在跟踪堆栈信息
             {
-                return;
+                return;//直接返回
             }
 
-            var stacktraceLineInfoIndex = (int)userData;
-            if (stacktraceLineInfoIndex < m_SelectedInfo.stacktraceLineInfos.Count)
+            var stacktraceLineInfoIndex = (int)userData;//定义选中行
+            if (stacktraceLineInfoIndex < m_SelectedInfo.stacktraceLineInfos.Count)//如果选中行合法
             {
-                var wrapper = m_SelectedInfo.stacktraceLineInfos[stacktraceLineInfoIndex].wrapper;
-                if (m_WrapperInfos.Contains(wrapper))
+                var wrapper = m_SelectedInfo.stacktraceLineInfos[stacktraceLineInfoIndex].wrapper;//获取目标跟踪堆栈的包装信息
+                if (m_WrapperInfos.Contains(wrapper))//检查是否已经包含目标数据
                 {
-                    m_WrapperInfos.Remove(wrapper);
+                    m_WrapperInfos.Remove(wrapper);//如果已经包含，则删除
                 }
                 else
                 {
-                    m_WrapperInfos.Add(wrapper);
+                    m_WrapperInfos.Add(wrapper);//如果不包含，则添加
                 }
-                StringBuilder sb = new StringBuilder();
-                foreach (var info in m_WrapperInfos)
+                StringBuilder sb = new StringBuilder();//创建StringBuilder
+                foreach (var info in m_WrapperInfos)//遍历所有包装信息
                 {
-                    if (!string.IsNullOrEmpty(info))
+                    if (!string.IsNullOrEmpty(info))//将所有的入口清空
                     {
-                        sb.Append(info);
-                        sb.Append('\n');
+                        sb.Append(info);//打包包装信息
+                        sb.Append('\n');//用换行分割
                     }
                 }
-                EditorPrefs.SetString(kPrefWrappers, sb.ToString());
+                EditorPrefs.SetString(kPrefWrappers, sb.ToString());//保存信息
             }
         }
-
+        /// <summary>
+        /// 复制目标入口
+        /// </summary>
+        /// <param name="userData"></param>
         public void StacktraceListView_Copy(object userData)
         {
             if (!StacktraceListView_IsExist())
@@ -1364,13 +1412,15 @@ namespace ConsoleTiny
                 return;
             }
 
-            var stacktraceLineInfoIndex = (int)userData;
+            var stacktraceLineInfoIndex = (int)userData;//定义选中行
             if (stacktraceLineInfoIndex < m_SelectedInfo.stacktraceLineInfos.Count)
             {
                 EditorGUIUtility.systemCopyBuffer = m_SelectedInfo.stacktraceLineInfos[stacktraceLineInfoIndex].plain;
             }
         }
-
+        /// <summary>
+        /// 复制所有
+        /// </summary>
         public void StacktraceListView_CopyAll()
         {
             if (!StacktraceListView_IsExist() || !IsSelectedEntryShow())
@@ -1380,7 +1430,6 @@ namespace ConsoleTiny
 
             EditorGUIUtility.systemCopyBuffer = m_SelectedInfo.entry.condition;
         }
-
         #endregion
     }
 

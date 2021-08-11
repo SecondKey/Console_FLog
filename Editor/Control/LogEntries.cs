@@ -7,6 +7,9 @@ using UnityEngine;
 
 namespace ConsoleTiny
 {
+    /// <summary>
+    /// 跟踪堆栈入口信息
+    /// </summary>
     class EntryInfo
     {
         public int row;
@@ -23,7 +26,7 @@ namespace ConsoleTiny
         public ConsoleFlags flags;
         public LogEntry entry;
         /// <summary>
-        /// 所有的堆栈跟踪信息
+        /// 所有的堆栈行信息
         /// </summary>
         public List<StacktraceLineInfo> stacktraceLineInfos;
         public List<int> tagPosInfos;
@@ -34,13 +37,16 @@ namespace ConsoleTiny
     /// </summary>
     class StacktraceLineInfo
     {
+        /// <summary>
+        /// 用于复制的文本信息
+        /// </summary>
         public string plain;
         /// <summary>
-        /// 文本
+        /// 用于显示的文本信息
         /// </summary>
         public string text;
         /// <summary>
-        /// 包装器
+        /// 用于包装的文本
         /// </summary>
         public string wrapper;
         /// <summary>

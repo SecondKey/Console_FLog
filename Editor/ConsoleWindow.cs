@@ -416,10 +416,9 @@ namespace ConsoleTiny
             #region 延迟回调防止死锁
             // Prevent dead locking in EditorMonoConsole by delaying callbacks (which can log to the console) until after LogEntries.EndGettingEntries() has been
             // called (this releases the mutex in EditorMonoConsole so logging again is allowed). Fix for case 1081060.
-            if (rowDoubleClicked != -1)
+            if (rowDoubleClicked != -1)//如果有双击的目标
             {
-                EntryWrapped.Instence.StacktraceListView_RowGotDoubleClicked();
-
+                EntryWrapped.Instence.StacktraceListView_RowGotDoubleClicked();//双击打开
             }
             #endregion
 
@@ -735,22 +734,72 @@ namespace ConsoleTiny
             }
         }
 
+        /// <summary>
+        /// 跟踪堆栈类型数据
+        /// </summary>
         public struct StackTraceLogTypeData
         {
+            /// <summary>
+            /// 输出类型
+            /// </summary>
             public LogType logType;
+            /// <summary>
+            /// 跟踪堆栈的类型
+            /// </summary>
             public StackTraceLogType stackTraceLogType;
         }
 
+        /// <summary>
+        /// 设置跟踪堆栈输出选项
+        /// </summary>
+        /// <param name="userData">跟踪堆栈的类型</param>
         public void ToggleLogStackTraces(object userData)
         {
-            StackTraceLogTypeData data = (StackTraceLogTypeData)userData;
-            PlayerSettings.SetStackTraceLogType(data.logType, data.stackTraceLogType);
+            StackTraceLogTypeData data = (StackTraceLogTypeData)userData;//类型转换
+            PlayerSettings.SetStackTraceLogType(data.logType, data.stackTraceLogType);//设置类型
         }
-
+        /// <summary>
+        /// 为所有的输出类型设置对对应的跟踪堆栈类型
+        /// </summary>
+        /// <param name="userData">跟踪堆栈类型</param>
         public void ToggleLogStackTracesForAll(object userData)
         {
-            foreach (LogType logType in Enum.GetValues(typeof(LogType)))
+            foreach (LogType logType in Enum.GetValues(typeof(LogType)))//遍历所有的输出类型
+            {
                 PlayerSettings.SetStackTraceLogType(logType, (StackTraceLogType)userData);
+            }
+        }
+
+        private void AddStackTraceLoggingMenu(GenericMenu menu)
+        {
+            // TODO: Maybe remove this, because it basically duplicates UI in PlayerSettings
+            foreach (LogType logType in Enum.GetValues(typeof(LogType)))
+            {
+                foreach (StackTraceLogType stackTraceLogType in Enum.GetValues(typeof(StackTraceLogType)))
+                {
+                    StackTraceLogTypeData data;
+                    data.logType = logType;
+                    data.stackTraceLogType = stackTraceLogType;
+
+                    menu.AddItem(EditorGUIUtility.TextContent("Stack Trace Logging/" + logType + "/" + stackTraceLogType), PlayerSettings.GetStackTraceLogType(logType) == stackTraceLogType, ToggleLogStackTraces, data);
+                }
+            }
+
+            int stackTraceLogTypeForAll = (int)PlayerSettings.GetStackTraceLogType(LogType.Log);
+            foreach (LogType logType in Enum.GetValues(typeof(LogType)))
+            {
+                if (PlayerSettings.GetStackTraceLogType(logType) != (StackTraceLogType)stackTraceLogTypeForAll)
+                {
+                    stackTraceLogTypeForAll = -1;
+                    break;
+                }
+            }
+
+            foreach (StackTraceLogType stackTraceLogType in Enum.GetValues(typeof(StackTraceLogType)))
+            {
+                menu.AddItem(EditorGUIUtility.TextContent("Stack Trace Logging/All/" + stackTraceLogType), (StackTraceLogType)stackTraceLogTypeForAll == stackTraceLogType,
+                    ToggleLogStackTracesForAll, stackTraceLogType);
+            }
         }
 
         #endregion
@@ -787,38 +836,6 @@ namespace ConsoleTiny
             UpdateListView();
         }
 
-        private void AddStackTraceLoggingMenu(GenericMenu menu)
-        {
-            // TODO: Maybe remove this, because it basically duplicates UI in PlayerSettings
-            foreach (LogType logType in Enum.GetValues(typeof(LogType)))
-            {
-                foreach (StackTraceLogType stackTraceLogType in Enum.GetValues(typeof(StackTraceLogType)))
-                {
-                    StackTraceLogTypeData data;
-                    data.logType = logType;
-                    data.stackTraceLogType = stackTraceLogType;
-
-                    menu.AddItem(EditorGUIUtility.TextContent("Stack Trace Logging/" + logType + "/" + stackTraceLogType), PlayerSettings.GetStackTraceLogType(logType) == stackTraceLogType,
-                        ToggleLogStackTraces, data);
-                }
-            }
-
-            int stackTraceLogTypeForAll = (int)PlayerSettings.GetStackTraceLogType(LogType.Log);
-            foreach (LogType logType in Enum.GetValues(typeof(LogType)))
-            {
-                if (PlayerSettings.GetStackTraceLogType(logType) != (StackTraceLogType)stackTraceLogTypeForAll)
-                {
-                    stackTraceLogTypeForAll = -1;
-                    break;
-                }
-            }
-
-            foreach (StackTraceLogType stackTraceLogType in Enum.GetValues(typeof(StackTraceLogType)))
-            {
-                menu.AddItem(EditorGUIUtility.TextContent("Stack Trace Logging/All/" + stackTraceLogType), (StackTraceLogType)stackTraceLogTypeForAll == stackTraceLogType,
-                    ToggleLogStackTracesForAll, stackTraceLogType);
-            }
-        }
     }
 
     internal class GettingLogEntriesScope : IDisposable

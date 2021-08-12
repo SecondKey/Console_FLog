@@ -24,12 +24,33 @@ namespace ConsoleTiny
         [Flags]
         enum Mode
         {
+            /// <summary>
+            /// 错误
+            /// </summary>
             Error = 1 << 0,
+            /// <summary>
+            /// 断点
+            /// </summary>
             Assert = 1 << 1,
+            /// <summary>
+            /// 输出
+            /// </summary>
             Log = 1 << 2,
+            /// <summary>
+            /// 致命的
+            /// </summary>
             Fatal = 1 << 4,
+            /// <summary>
+            /// 不进行预处理的条件
+            /// </summary>
             DontPreprocessCondition = 1 << 5,
+            /// <summary>
+            /// 资源导入错误
+            /// </summary>
             AssetImportError = 1 << 6,
+            /// <summary>
+            /// 资源导入警告
+            /// </summary>
             AssetImportWarning = 1 << 7,
             ScriptingError = 1 << 8,
             ScriptingWarning = 1 << 9,
@@ -297,7 +318,6 @@ namespace ConsoleTiny
             if (count == m_LastEntryCount)
             {
                 LogEntries.consoleFlags = flags;
-                CheckRepaint(CheckSearchStringChanged());
                 return;
             }
 
@@ -332,7 +352,6 @@ namespace ConsoleTiny
             m_LastEntryCount = count;
 
             CheckSearchStringChanged();
-            CheckRepaint(true);
         }
 
         /// <summary>
@@ -528,13 +547,19 @@ namespace ConsoleTiny
             return true;
         }
 
-        private void CheckRepaint(bool repaint)
-        {
-
-        }
-
+        /// <summary>
+        /// 判断两个模式是否匹配
+        /// </summary>
+        /// <param name="mode">匹配模式</param>
+        /// <param name="modeToCheck">匹配模式</param>
+        /// <returns>是否匹配</returns>
         private bool HasMode(int mode, Mode modeToCheck) { return (mode & (int)modeToCheck) != 0; }
 
+        /// <summary>
+        /// 根据模式获取控制台输出模式
+        /// </summary>
+        /// <param name="mode">模式</param>
+        /// <returns>输出模式</returns>
         private ConsoleFlags GetConsoleFlagFromMode(int mode)
         {
             // Errors

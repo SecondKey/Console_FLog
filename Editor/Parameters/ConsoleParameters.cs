@@ -18,7 +18,7 @@ namespace ConsoleTiny
 
             foreach (DirectoryInfo info in new DirectoryInfo("").GetDirectories())
             {
-                
+
             }
         }
 
@@ -208,17 +208,17 @@ namespace ConsoleTiny
         private static int ms_logStyleLineCount;
         public static int LogStyleLineCount
         {
-            get { return 20; }
+            get { return ms_logStyleLineCount; }
             set
             {
                 ms_logStyleLineCount = value;
                 EntryWrapped.Instence.numberOfLines = value;
 
                 // If Constants hasn't been initialized yet we just skip this for now
-                //If Constants hasn't been initialized yet we just skip this for now and let Init() call this for us in a bit.
-                //if (!Instence.loadAlready)
+                // If Constants hasn't been initialized yet we just skip this for now and let Init() call this for us in a bit.
+                // if (!Instence.loadAlready)
                 //    return;
-                //UpdateLogStyleFixedHeights();
+                // UpdateLogStyleFixedHeights();
             }
         }
         #endregion 

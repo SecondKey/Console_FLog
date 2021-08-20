@@ -29,7 +29,7 @@ namespace ConsoleTiny
             /// </summary>
             Error = 1 << 0,
             /// <summary>
-            /// 断点
+            /// 断言
             /// </summary>
             Assert = 1 << 1,
             /// <summary>
@@ -52,20 +52,65 @@ namespace ConsoleTiny
             /// 资源导入警告
             /// </summary>
             AssetImportWarning = 1 << 7,
+            /// <summary>
+            /// 脚本报错
+            /// </summary>
             ScriptingError = 1 << 8,
+            /// <summary>
+            /// 脚本警告
+            /// </summary>
             ScriptingWarning = 1 << 9,
+            /// <summary>
+            /// 脚本处理输出
+            /// </summary>
             ScriptingLog = 1 << 10,
+            /// <summary>
+            /// 脚本编译报错
+            /// </summary>
             ScriptCompileError = 1 << 11,
+            /// <summary>
+            /// 脚本编译警告
+            /// </summary>
             ScriptCompileWarning = 1 << 12,
+            /// <summary>
+            /// 粘性报错
+            /// </summary>
             StickyError = 1 << 13,
+            /// <summary>
+            /// 或许忽略行号
+            /// </summary>
             MayIgnoreLineNumber = 1 << 14,
+            /// <summary>
+            /// 报BUG
+            /// </summary>
             ReportBug = 1 << 15,
+            /// <summary>
+            /// 在状态栏显示以前的错误
+            /// </summary>
             DisplayPreviousErrorInStatusBar = 1 << 16,
+            /// <summary>
+            /// 脚本异常
+            /// </summary>
             ScriptingException = 1 << 17,
+            /// <summary>
+            /// 不提取跟踪堆栈
+            /// </summary>
             DontExtractStacktrace = 1 << 18,
+            /// <summary>
+            /// 应当在开始时清除
+            /// </summary>
             ShouldClearOnPlay = 1 << 19,
+            /// <summary>
+            /// 图形编译器报错
+            /// </summary>
             GraphCompileError = 1 << 20,
+            /// <summary>
+            /// 脚本断言
+            /// </summary>
             ScriptingAssertion = 1 << 21,
+            /// <summary>
+            /// 可视化脚本报错
+            /// </summary>
             VisualScriptingError = 1 << 22
         };
 
@@ -75,6 +120,9 @@ namespace ConsoleTiny
             set { m_NumberOfLines = value; ResetEntriesForNumberLines(); }
         }
 
+        /// <summary>
+        /// 是否显示时间戳
+        /// </summary>
         public bool showTimestamp
         {
             get { return m_ShowTimestamp; }
@@ -86,6 +134,9 @@ namespace ConsoleTiny
             }
         }
 
+        /// <summary>
+        /// 是否折叠
+        /// </summary>
         public bool collapse
         {
             get { return m_Collapse; }

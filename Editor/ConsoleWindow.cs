@@ -58,8 +58,6 @@ namespace ConsoleTiny
         /// </summary>
         private double m_NextRepaint = double.MaxValue;
 
-        SplitterState spl = new SplitterState(new float[] { 70, 30 }, new int[] { 32, 32 }, null);
-
         int ms_LVHeight = 0;
 
         IConnectionState m_ConsoleAttachToPlayerState;
@@ -288,7 +286,7 @@ namespace ConsoleTiny
             #endregion
 
             #region Vertical
-            SplitterGUILayout.BeginVerticalSplit(spl);//开启纵向布局
+            SplitterGUILayout.BeginVerticalSplit(new SplitterState(new float[] { 70, 30 }, new int[] { 32, 32 }, null));//开启纵向布局
             EditorGUIUtility.SetIconSize(new Vector2(RowHeight, RowHeight));//设置图标
             GUIContent tempContent = new GUIContent();
             int id = GUIUtility.GetControlID(0);
@@ -389,7 +387,7 @@ namespace ConsoleTiny
                 }
                 #endregion
 
-                #region
+                #region 没看懂
                 //TODO:不懂
                 if (e.type != EventType.Layout && ListViewGUI.ilvState.rectHeight != 1)//
                 {
@@ -514,7 +512,6 @@ namespace ConsoleTiny
 
             return ConsoleParameters.LogStyle;
         }
-
         #endregion 
 
         #region 点击索引到游戏物体
@@ -758,6 +755,7 @@ namespace ConsoleTiny
             StackTraceLogTypeData data = (StackTraceLogTypeData)userData;//类型转换
             PlayerSettings.SetStackTraceLogType(data.logType, data.stackTraceLogType);//设置类型
         }
+
         /// <summary>
         /// 为所有的输出类型设置对对应的跟踪堆栈类型
         /// </summary>
@@ -766,10 +764,41 @@ namespace ConsoleTiny
         {
             foreach (LogType logType in Enum.GetValues(typeof(LogType)))//遍历所有的输出类型
             {
-                PlayerSettings.SetStackTraceLogType(logType, (StackTraceLogType)userData);
+                PlayerSettings.SetStackTraceLogType(logType, (StackTraceLogType)userData);//为输出类型设置目标值
             }
         }
 
+
+        #endregion
+
+
+        #region 添加菜单项，但是这里的代码执行不到     
+        /// <summary>
+        /// 向菜单中添加菜单项
+        /// </summary>
+        /// <param name="menu"></param>
+        public void AddItemsToMenu(GenericMenu menu)
+        {
+            if (Application.platform == RuntimePlatform.OSXEditor)
+                menu.AddItem(EditorGUIUtility.TextContent("Open Player Log"), false, UnityEditorInternal.InternalEditorUtility.OpenPlayerConsole);
+            menu.AddItem(EditorGUIUtility.TextContent("Open Editor Log"), false, UnityEditorInternal.InternalEditorUtility.OpenEditorConsole);
+            menu.AddItem(EditorGUIUtility.TextContent("Export Console Log"), false, EntryWrapped.Instence.ExportLog);
+
+            menu.AddItem(EditorGUIUtility.TrTextContent("Show Timestamp"), EntryWrapped.Instence.showTimestamp, SetTimestamp);
+
+            for (int i = 1; i <= 10; ++i)
+            {
+                var lineString = i == 1 ? "Line" : "Lines";
+                menu.AddItem(new GUIContent(string.Format("Log Entry/{0} {1}", i, lineString)), i == LogStyleLineCount, SetLogLineCount, i);
+            }
+
+            AddStackTraceLoggingMenu(menu);
+        }
+
+        /// <summary>
+        /// 添加跟踪堆栈的输出菜单项
+        /// </summary>
+        /// <param name="menu"></param>
         private void AddStackTraceLoggingMenu(GenericMenu menu)
         {
             // TODO: Maybe remove this, because it basically duplicates UI in PlayerSettings
@@ -802,31 +831,18 @@ namespace ConsoleTiny
             }
         }
 
-        #endregion
-
-        public void AddItemsToMenu(GenericMenu menu)
-        {
-            if (Application.platform == RuntimePlatform.OSXEditor)
-                menu.AddItem(EditorGUIUtility.TextContent("Open Player Log"), false, UnityEditorInternal.InternalEditorUtility.OpenPlayerConsole);
-            menu.AddItem(EditorGUIUtility.TextContent("Open Editor Log"), false, UnityEditorInternal.InternalEditorUtility.OpenEditorConsole);
-            menu.AddItem(EditorGUIUtility.TextContent("Export Console Log"), false, EntryWrapped.Instence.ExportLog);
-
-            menu.AddItem(EditorGUIUtility.TrTextContent("Show Timestamp"), EntryWrapped.Instence.showTimestamp, SetTimestamp);
-
-            for (int i = 1; i <= 10; ++i)
-            {
-                var lineString = i == 1 ? "Line" : "Lines";
-                menu.AddItem(new GUIContent(string.Format("Log Entry/{0} {1}", i, lineString)), i == LogStyleLineCount, SetLogLineCount, i);
-            }
-
-            AddStackTraceLoggingMenu(menu);
-        }
-
+        /// <summary>
+        /// 设置显示时间戳
+        /// </summary>
         private void SetTimestamp()
         {
-            EntryWrapped.Instence.showTimestamp = !EntryWrapped.Instence.showTimestamp;
+            EntryWrapped.Instence.showTimestamp = !EntryWrapped.Instence.showTimestamp;//设置显示时间戳 
         }
 
+        /// <summary>
+        /// 设置输出行数
+        /// </summary>
+        /// <param name="obj"></param>
         private void SetLogLineCount(object obj)
         {
             int count = (int)obj;
@@ -835,9 +851,12 @@ namespace ConsoleTiny
 
             UpdateListView();
         }
-
+        #endregion
     }
 
+    /// <summary>
+    /// 这个类用于设定一个范围，这个范围表示一次列表的刷新
+    /// </summary>
     internal class GettingLogEntriesScope : IDisposable
     {
         private bool m_Disposed;

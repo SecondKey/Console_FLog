@@ -22,6 +22,7 @@ namespace ConsoleTiny
         /// 单例
         /// </summary>
         static ConsoleWindow ms_ConsoleWindow = null;
+
         /// <summary>
         /// 打开控制台
         /// </summary>
@@ -37,10 +38,12 @@ namespace ConsoleTiny
         /// 显示信息列表
         /// </summary>
         ListViewState logListView;
+
         /// <summary>
         /// 信息详情列表
         /// </summary>
         ListViewState messageListView;
+
         /// <summary>
         /// 
         /// </summary>
@@ -78,11 +81,6 @@ namespace ConsoleTiny
         /// log列表行高
         /// </summary>
         private int RowHeight => (LogStyleLineCount * m_LineHeight) + m_BorderHeight;
-
-        public void RefreshPageStyle()
-        {
-
-        }
 
         /// <summary>
         /// 刷新列表视图
@@ -544,11 +542,13 @@ namespace ConsoleTiny
         #endregion
 
         /// <summary>
-        /// 查找文件
+        /// 查找输出
         /// </summary>
         /// <param name="e"></param>
         private void SearchField(Event e)
         {
+            #region 
+
             string searchBarName = "SearchFilter";
             if (e.commandName == "Find")
             {
@@ -560,8 +560,11 @@ namespace ConsoleTiny
                 if (e.type != EventType.Layout)
                     e.Use();
             }
-
             string searchText = EntryWrapped.Instence.searchString;
+            #endregion 
+
+
+
             if (e.type == EventType.KeyDown)
             {
                 if (e.keyCode == KeyCode.Escape)
@@ -578,7 +581,9 @@ namespace ConsoleTiny
             }
 
             GUI.SetNextControlName(searchBarName);
-            Rect rect = GUILayoutUtility.GetRect(0, EditorGUILayout.kLabelFloatMaxW * 1.5f, EditorGUI.kSingleLineHeight,
+            Rect rect = GUILayoutUtility.GetRect(
+                0,
+                EditorGUILayout.kLabelFloatMaxW * 1.5f, EditorGUI.kSingleLineHeight,
                 EditorGUI.kSingleLineHeight, EditorStyles.toolbarSearchField, GUILayout.MinWidth(100),
                 GUILayout.MaxWidth(300));
 
@@ -772,7 +777,7 @@ namespace ConsoleTiny
         #endregion
 
 
-        #region 添加菜单项，但是这里的代码执行不到     
+        #region 添加菜单项 IHasCustomMenu Members
         /// <summary>
         /// 向菜单中添加菜单项
         /// </summary>

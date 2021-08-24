@@ -152,12 +152,18 @@ namespace ConsoleTiny
             }
         }
 
+        /// <summary>
+        /// 搜索的字符串
+        /// </summary>
         public string searchString
         {
             get { return m_SearchString; }
             set { m_SearchStringComing = value; }
         }
 
+        /// <summary>
+        /// 搜索的历
+        /// </summary>
         public string[] searchHistory = new[] { "" };
 
         public bool searchFrame { get; set; }

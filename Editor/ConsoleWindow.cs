@@ -542,7 +542,7 @@ namespace ConsoleTiny
         #endregion
 
         /// <summary>
-        /// 查找输出
+        /// 搜索输出项目
         /// </summary>
         /// <param name="e"></param>
         private void SearchField(Event e)
@@ -598,7 +598,6 @@ namespace ConsoleTiny
             }
 
             EntryWrapped.Instence.searchString = EditorGUI.ToolbarSearchField(
-
                 rect, searchText, showHistory);
 
             if (GUILayout.Button(new GUIContent(iconCustomFiltersMono, CustomFiltersLabel), EditorStyles.toolbarDropDown))

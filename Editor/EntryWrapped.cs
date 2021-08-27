@@ -636,6 +636,11 @@ namespace ConsoleTiny
             return ConsoleFlags.LogLevelLog;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="s"></param>
+        /// <returns></returns>
         private string GetNumberLines(string s)
         {
             int num = numberOfLines;
@@ -687,6 +692,9 @@ namespace ConsoleTiny
 
         private const int kTagQuadIndex = 5;
 
+        private readonly StringBuilder m_StringBuilder = new StringBuilder();
+        private readonly Stack<int> m_TagStack = new Stack<int>();
+
         private readonly string[] m_TagStrings = new string[]
         {
                 "b",
@@ -700,6 +708,15 @@ namespace ConsoleTiny
                 "width",
                 "height",
         };
+
+
+        /// <summary>
+        /// 获取一个tag在整个字符串中的位置
+        /// </summary>
+        /// <param name="input">整个字符串</param>
+        /// <param name="pos">当前扫描的位置</param>
+        /// <param name="closing">如果是HTMLtag  </param>
+        /// <returns></returns>
         private int GetTagIndex(string input, ref int pos, out bool closing)
         {
             closing = false;
@@ -762,12 +779,9 @@ namespace ConsoleTiny
             return -1;
         }
 
-        private readonly StringBuilder m_StringBuilder = new StringBuilder();
-        private readonly Stack<int> m_TagStack = new Stack<int>();
-
 
         /// <summary>
-        /// 根据输入获取纯系列表
+        /// 获取去除标签的文本信息
         /// </summary>
         /// <param name="input"></param>
         /// <param name="posList"></param>

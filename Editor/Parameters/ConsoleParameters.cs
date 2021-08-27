@@ -9,6 +9,10 @@ namespace ConsoleTiny
 {
     public class ConsoleParameters
     {
+        #region Const
+
+        #endregion 
+
         #region StyleFile
         Dictionary<string, ValueTuple<ConsoleStyle, Dictionary<string, LogStyle>>> StyleList;
 

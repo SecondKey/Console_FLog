@@ -2,12 +2,15 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System.Xml.Linq;
+using static ConsoleTiny.ConsoleParameters;
 
 namespace ConsoleTiny
 {
     public class ConsoleStyle
     {
         public string StyleName { get; }
+        public string DefaultLogStyleName { get; }
+
 
         #region GUIStyel
         private Dictionary<string, GUIStyle> GUIStyleList;
@@ -39,11 +42,11 @@ namespace ConsoleTiny
         //LogStyle.fixedHeight = (LogStyleLineCount * LogStyle.lineHeight) + LogStyle.border.top;
         //}
         #endregion
-        public ConsoleStyle(string styleName, string stylePath)
+        public ConsoleStyle(string stylePath)
         {
-            StyleName = styleName;
+            XElement root = XDocument.Load(stylePath + "/Style.xml").Root;
 
-            XElement root = XDocument.Load(stylePath).Root;
+            StyleName = root.Element("StyleName").Value.ToString();
 
             foreach (XElement element in root.Element("GUIStyle").Elements())
             {

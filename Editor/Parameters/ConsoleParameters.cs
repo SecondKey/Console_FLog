@@ -1,119 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.IO;
 using UnityEditor;
 using UnityEngine;
 
 namespace ConsoleTiny
 {
-    public class ConsoleParameters
+    public static class ConsoleParameters
     {
         #region Const
-
-        #endregion 
-
-        #region StyleFile
-        Dictionary<string, ValueTuple<ConsoleStyle, Dictionary<string, LogStyle>>> StyleList;
-
-        public void LoadStyle()
-        {
-            StyleList = new Dictionary<string, (ConsoleStyle, Dictionary<string, LogStyle>)>();
-
-            foreach (DirectoryInfo info in new DirectoryInfo("").GetDirectories())
-            {
-
-            }
-        }
-
-        public void RefreshStyle()
-        {
-
-        }
-        #endregion
-
-        static ConsoleStyle consoleStyle;
-        static LogStyle logStyle;
-
-        static ConsoleStyle defaultConsoleStyle;
-        static LogStyle defaultLogStyle;
-
-        public void LoadConfig()
-        {
-            GUIStyle msessageStyle = new GUIStyle("");
-            msessageStyle.onNormal.textColor = msessageStyle.active.textColor;
-            msessageStyle.padding.top = 0;
-            msessageStyle.padding.bottom = 0;
-            var selectedStyle = new GUIStyle("MeTransitionSelect");
-            msessageStyle.onNormal.background = selectedStyle.normal.background;
-
-
-            iconInfo = EditorGUIUtility.LoadIcon("console.infoicon");
-            iconWarn = EditorGUIUtility.LoadIcon("console.warnicon");
-            iconError = EditorGUIUtility.LoadIcon("console.erroricon");
-            iconInfoSmall = EditorGUIUtility.LoadIcon("console.infoicon.sml");
-            iconWarnSmall = EditorGUIUtility.LoadIcon("console.warnicon.sml");
-            iconErrorSmall = EditorGUIUtility.LoadIcon("console.erroricon.sml");
-            iconFirstErrorSmall = EditorGUIUtility.LoadIcon("sv_icon_dot14_sml");
-
-            // TODO: Once we get the proper monochrome images put them here.
-            /*iconInfoMono = EditorGUIUtility.LoadIcon("console.infoicon.mono");
-            iconWarnMono = EditorGUIUtility.LoadIcon("console.warnicon.mono");
-            iconErrorMono = EditorGUIUtility.LoadIcon("console.erroricon.mono");*/
-            iconInfoMono = EditorGUIUtility.LoadIcon("console.infoicon.sml");
-            iconWarnMono = EditorGUIUtility.LoadIcon("console.warnicon.inactive.sml");
-            iconErrorMono = EditorGUIUtility.LoadIcon("console.erroricon.inactive.sml");
-            iconFirstErrorMono = EditorGUIUtility.LoadIcon("sv_icon_dot8_sml");
-            iconCustomFiltersMono = EditorGUIUtility.LoadIcon("sv_icon_dot0_sml");
-
-            iconCustomFiltersSmalls = new Texture2D[7];
-            for (int i = 0; i < 7; i++)
-            {
-                iconCustomFiltersSmalls[i] = EditorGUIUtility.LoadIcon("sv_icon_dot" + (i + 1) + "_sml");
-            }
+        public const string kPrefConsoleFlags = "ConsoleTiny_ConsoleFlags";
+        public const string kPrefShowTimestamp = "ConsoleTiny_ShowTimestamp";
+        public const string kPrefCollapse = "ConsoleTiny_Collapse";
+        public const string kPrefCustomFilters = "ConsoleTiny_CustomFilters";
+        public const string kPrefWrappers = "ConsoleTiny_Wrappers";
 
 
 
-
-
-            bool isProSkin = EditorGUIUtility.isProSkin;
-            colorNamespace = isProSkin ? "6A87A7" : "66677E";
-            colorClass = isProSkin ? "1A7ECD" : "0072A0";
-            colorMethod = isProSkin ? "0D9DDC" : "335B89";
-            colorParameters = isProSkin ? "4F7F9F" : "4C5B72";
-            colorPath = isProSkin ? "375E68" : "7F8B90";
-            colorFilename = isProSkin ? "4A6E8A" : "6285A1";
-            colorNamespaceAlpha = isProSkin ? "4E5B6A" : "87878F";
-            colorClassAlpha = isProSkin ? "2A577B" : "628B9B";
-            colorMethodAlpha = isProSkin ? "246581" : "748393";
-            colorParametersAlpha = isProSkin ? "425766" : "7D838B";
-            colorPathAlpha = isProSkin ? "375860" : "8E989D";
-            colorFilenameAlpha = isProSkin ? "4A6E8A" : "6285A1";
-
-
-
-
-            LogStyleLineCount = EditorPrefs.GetInt("ConsoleWindowLogLineCount", 2);//强制读取消息行数，因为如果控制台没有打开，则其行数始终为0
-        }
-
-        private Texture2D LoadTexture(string imgPath)
-        {
-            FileStream fileStream = new FileStream(imgPath, FileMode.Open, FileAccess.Read);
-            byte[] imgBytes = new byte[fileStream.Length]; //创建文件长度的buffer
-            fileStream.Read(imgBytes, 0, (int)fileStream.Length);
-            fileStream.Close();
-            fileStream.Dispose();
-            fileStream = null;
-            Image img = Image.FromStream(new MemoryStream(imgBytes));
-            Texture2D texture = new Texture2D(img.Width, img.Height);
-            texture.LoadImage(imgBytes);
-            return texture;
-        }
-
-
-        #region static
-
-        #region Const
         public const string ClearLabel = "Clear";
         public const string ClearOnPlayLabel = "Clear on Play";
         public const string ErrorPauseLabel = "Error Pause";
@@ -124,6 +26,9 @@ namespace ConsoleTiny
         public const string FirstErrorLabel = "First Error";
         public const string CustomFiltersLabel = "Custom Filters";
         #endregion
+
+        #region Static 
+        public static string ConsoleTingPath = Application.dataPath + "/Plugin/ConsoleTing/";
 
         #region GUIStyle
         public static GUIStyle Box { get { return GetGUIStyle("Box"); } }
@@ -149,14 +54,9 @@ namespace ConsoleTiny
         public static GUIStyle IconWarningSmallStyle { get { return GetGUIStyle("IconWarningSmallStyle"); } }
         public static GUIStyle IconErrorSmallStyle { get { return GetGUIStyle("IconErrorSmallStyle"); } }
 
-        private static GUIStyle GetGUIStyle(string styleName)
+        static GUIStyle GetGUIStyle(string styleName)
         {
-            GUIStyle style = consoleStyle.GetGUIStyle(styleName);
-            if (style == null)
-            {
-                style = defaultConsoleStyle.GetGUIStyle(styleName);
-            }
-            return style;
+            return ConsoleManager.Instence.GetConsoleStyle(styleName);
         }
         #endregion
 
@@ -168,26 +68,27 @@ namespace ConsoleTiny
         public static string colorParameters, colorParametersAlpha;
         public static string colorPath, colorPathAlpha;
         public static string colorFilename, colorFilenameAlpha;
-
         #endregion
 
+
         #region Icon
-        static internal Texture2D iconInfo;
-        static internal Texture2D iconWarn;
-        static internal Texture2D iconError;
-        static internal Texture2D iconInfoSmall;
-        static internal Texture2D iconWarnSmall;
-        static internal Texture2D iconErrorSmall;
-        static internal Texture2D iconFirstErrorSmall;
+        public static Texture2D iconInfo;
+        public static Texture2D iconWarn;
+        public static Texture2D iconError;
+        public static Texture2D iconInfoSmall;
+        public static Texture2D iconWarnSmall;
+        public static Texture2D iconErrorSmall;
+        public static Texture2D iconFirstErrorSmall;
+        public static Texture2D iconInfoMono;
+        public static Texture2D iconWarnMono;
+        public static Texture2D iconErrorMono;
+        public static Texture2D iconFirstErrorMono;
+        public static Texture2D iconCustomFiltersMono;
 
-        static internal Texture2D iconInfoMono;
-        static internal Texture2D iconWarnMono;
-        static internal Texture2D iconErrorMono;
-        static internal Texture2D iconFirstErrorMono;
-        static internal Texture2D iconCustomFiltersMono;
-
-        static internal Texture2D[] iconCustomFiltersSmalls;
+        public static Texture2D[] iconCustomFiltersSmalls;
         #endregion 
+
+        #endregion
 
         #region Texture
         private static Dictionary<string, List<Texture2D>> ConsoleIconList;
@@ -227,17 +128,6 @@ namespace ConsoleTiny
         }
         #endregion 
 
-        public void LoadSytle(string consoleStyleName, string logStyleName)
-        {
-            if (consoleStyleName == consoleStyle.StyleName && logStyleName == logStyle.StyleName)
-                return;
-            if (consoleStyleName != consoleStyle.StyleName)
-            {
-                consoleStyle = StyleList[consoleStyleName].Item1;
-            }
-
-            logStyle = StyleList[consoleStyleName].Item2[logStyleName];
-        }
 
         private static void UpdateLogStyleFixedHeights()
         {
@@ -246,8 +136,5 @@ namespace ConsoleTiny
             WarningStyle.fixedHeight = (LogStyleLineCount * WarningStyle.lineHeight) + WarningStyle.border.top;
             LogStyle.fixedHeight = (LogStyleLineCount * LogStyle.lineHeight) + LogStyle.border.top;
         }
-
-
     }
-    #endregion 
 }

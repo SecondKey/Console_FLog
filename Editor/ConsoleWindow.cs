@@ -776,6 +776,13 @@ namespace ConsoleTiny
         #endregion
 
 
+        #region OutControl
+        public static void RefreshWindow()
+        {
+
+        }
+        #endregion 
+
         #region 添加菜单项 IHasCustomMenu Members
         /// <summary>
         /// 向菜单中添加菜单项

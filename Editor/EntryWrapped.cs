@@ -5,6 +5,7 @@ using UnityEditor;
 using System;
 using System.Text;
 using System.IO;
+using static ConsoleTiny.ConsoleParameters;
 
 namespace ConsoleTiny
 {
@@ -212,12 +213,6 @@ namespace ConsoleTiny
         private readonly List<EntryInfo> m_FilteredInfos = new List<EntryInfo>();
         private readonly CustomFiltersGroup m_CustomFilters = new CustomFiltersGroup();
         private readonly List<string> m_WrapperInfos = new List<string>();
-
-        private const string kPrefConsoleFlags = "ConsoleTiny_ConsoleFlags";
-        private const string kPrefShowTimestamp = "ConsoleTiny_ShowTimestamp";
-        private const string kPrefCollapse = "ConsoleTiny_Collapse";
-        private const string kPrefCustomFilters = "ConsoleTiny_CustomFilters";
-        private const string kPrefWrappers = "ConsoleTiny_Wrappers";
 
         /// <summary>
         /// 检查目标是否包含目标枚举值

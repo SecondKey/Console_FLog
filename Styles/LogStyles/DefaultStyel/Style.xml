@@ -1,8 +1,15 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<LogSettings>
+<LogStyle>
+  <Info>
+    <StyleName>DefaultStyle</StyleName>
+    <TargetConsoleStyle>DefaultStyle</TargetConsoleStyle>
 
-  <Texture>
-    <iconInfo></iconInfo>
+    <LogLine>3</LogLine>
+  </Info>
+
+
+  <Images>
+    <!--<iconInfo></iconInfo>
     <iconWarn></iconWarn>
     <iconError></iconError>
     <iconInfoSmall></iconInfoSmall>
@@ -14,10 +21,10 @@
     <iconWarnMono></iconWarnMono>
     <iconErrorMono></iconErrorMono>
     <iconFirstErrorMono></iconFirstErrorMono>
-    <iconCustomFiltersMono></iconCustomFiltersMono>
-  </Texture>
+    <iconCustomFiltersMono></iconCustomFiltersMono>-->
+  </Images>
 
   <AdditionalTexture>
-    
+
   </AdditionalTexture>
-</LogSettings>
+</LogStyle>

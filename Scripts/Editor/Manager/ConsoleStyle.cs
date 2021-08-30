@@ -11,9 +11,8 @@ namespace ConsoleTiny
         public string StyleName { get; }
         public string DefaultLogStyleName { get; }
 
-
         #region GUIStyel
-        private Dictionary<string, GUIStyle> GUIStyleList;
+        private Dictionary<string, GUIStyle> GUIStyleList = new Dictionary<string, GUIStyle>();
         #endregion
 
         #region logLineCount
@@ -46,8 +45,11 @@ namespace ConsoleTiny
         {
             XElement root = XDocument.Load(stylePath + "/Style.xml").Root;
 
-            StyleName = root.Element("StyleName").Value.ToString();
+            XElement infoElement = root.Element("Info");
+            StyleName = infoElement.Element("StyleName").Value.ToString();
+            DefaultLogStyleName = infoElement.Element("DefaultLogStyle").Value.ToString();
 
+            GUIStyleList.Clear();
             foreach (XElement element in root.Element("GUIStyle").Elements())
             {
                 LoadGUIStyleFromXml(element);
@@ -56,15 +58,26 @@ namespace ConsoleTiny
 
         public void LoadGUIStyleFromXml(XElement styleElement)
         {
-            GUIStyle style = styleElement.Value.RemoveTabs();
+            string styleName = styleElement.Element("Name") != null ? styleElement.Element("Name").Value.ToString() : styleElement.Value;
+
+            GUIStyle style = styleName;
             foreach (XElement styleParameters in styleElement.Elements())
             {
                 switch (styleParameters.Name.ToString())
                 {
                     case "OnNormal":
-
+                        foreach (XElement OnNormalParameter in styleParameters.Elements())
+                        {
+                            switch (OnNormalParameter.Name.ToString())
+                            {
+                                case "textColor":
+                                    style.onNormal.textColor = OnNormalParameter.Value.GetColor();
+                                    break;
+                            }
+                        }
                         break;
                     case "Padding":
+                        style.padding = styleParameters.Value.GetRectOffset();
                         break;
                 }
             }

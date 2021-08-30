@@ -294,7 +294,6 @@ namespace ConsoleTiny
             using (new GettingLogEntriesScope(logListView))
             {
                 int selectedRow = -1;//当前选中行号
-                bool collapsed = EntryWrapped.Instence.collapse;//折叠
                 bool openSelectedItem = false;//是否要打开选中条目
 
                 #region 遍历渲染所有的条目
@@ -336,7 +335,7 @@ namespace ConsoleTiny
                         }
                         #endregion
                         #region 折叠数字角标
-                        if (collapsed)//如果需要折叠
+                        if (EntryWrapped.Instence.collapse)//如果需要折叠
                         {
                             Rect badgeRect = el.position;//角标位置
                             tempContent.text = parameters.Item3.ToString(CultureInfo.InvariantCulture);//角标中的文本
@@ -797,12 +796,6 @@ namespace ConsoleTiny
 
             menu.AddItem(EditorGUIUtility.TrTextContent("Show Timestamp"), EntryWrapped.Instence.showTimestamp, SetTimestamp);
 
-            for (int i = 1; i <= 10; ++i)
-            {
-                var lineString = i == 1 ? "Line" : "Lines";
-                menu.AddItem(new GUIContent(string.Format("Log Entry/{0} {1}", i, lineString)), i == LogStyleLineCount, SetLogLineCount, i);
-            }
-
             AddStackTraceLoggingMenu(menu);
         }
 
@@ -848,19 +841,6 @@ namespace ConsoleTiny
         private void SetTimestamp()
         {
             EntryWrapped.Instence.showTimestamp = !EntryWrapped.Instence.showTimestamp;//设置显示时间戳 
-        }
-
-        /// <summary>
-        /// 设置输出行数
-        /// </summary>
-        /// <param name="obj"></param>
-        private void SetLogLineCount(object obj)
-        {
-            int count = (int)obj;
-            EditorPrefs.SetInt("ConsoleWindowLogLineCount", count);
-            LogStyleLineCount = count;
-
-            UpdateListView();
         }
         #endregion
     }

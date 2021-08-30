@@ -10,7 +10,6 @@ using EditorGUILayout = UnityEditor.EditorGUILayout;
 using EditorGUIUtility = UnityEditor.EditorGUIUtility;
 using CoreLog = UnityEditor;
 using System.IO;
-using static ConsoleTiny.ConsoleParameters;
 
 
 namespace ConsoleTiny

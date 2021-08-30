@@ -29,6 +29,7 @@ namespace ConsoleTiny
 
         #region Static 
         public static string ConsoleTingPath = Application.dataPath + "/Plugin/ConsoleTing/";
+        public static int LogStyleLineCount { get { return ConsoleManager.Instence.LogStyleLineCount; } }
 
         #region GUIStyle
         public static GUIStyle Box { get { return GetGUIStyle("Box"); } }
@@ -87,7 +88,6 @@ namespace ConsoleTiny
 
         public static Texture2D[] iconCustomFiltersSmalls;
         #endregion 
-
         #endregion
 
         #region Texture
@@ -105,36 +105,10 @@ namespace ConsoleTiny
                 return DefaultConsoleIconList[logType][UnityEngine.Random.Range(0, ConsoleIconList[logType].Count)];
 
             }
+
             return null;
         }
         #endregion
 
-        #region 输出条目的行数
-        private static int ms_logStyleLineCount;
-        public static int LogStyleLineCount
-        {
-            get { return ms_logStyleLineCount; }
-            set
-            {
-                ms_logStyleLineCount = value;
-                EntryWrapped.Instence.numberOfLines = value;
-
-                // If Constants hasn't been initialized yet we just skip this for now
-                // If Constants hasn't been initialized yet we just skip this for now and let Init() call this for us in a bit.
-                // if (!Instence.loadAlready)
-                //    return;
-                // UpdateLogStyleFixedHeights();
-            }
-        }
-        #endregion 
-
-
-        private static void UpdateLogStyleFixedHeights()
-        {
-            // Whenever we change the line height count or the styles are set we need to update the fixed height of the following GuiStyles so the entries do not get cropped incorrectly.
-            ErrorStyle.fixedHeight = (LogStyleLineCount * ErrorStyle.lineHeight) + ErrorStyle.border.top;
-            WarningStyle.fixedHeight = (LogStyleLineCount * WarningStyle.lineHeight) + WarningStyle.border.top;
-            LogStyle.fixedHeight = (LogStyleLineCount * LogStyle.lineHeight) + LogStyle.border.top;
-        }
     }
 }

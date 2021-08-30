@@ -163,7 +163,7 @@ namespace ConsoleTiny
         }
 
         /// <summary>
-        /// 搜索的历
+        /// 搜索的历史
         /// </summary>
         public string[] searchHistory = new[] { "" };
 

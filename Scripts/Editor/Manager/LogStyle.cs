@@ -7,12 +7,11 @@ using System.Drawing;
 
 namespace ConsoleTiny
 {
-    public class LogStyle : MonoBehaviour
+    public class LogStyle
     {
         public string StyleName { get; }
-        public string TargetStyleName { get; }
-
-        public List<string> AvailableConsoelStyleList { get; }
+        public string TargetConsoleStyleName { get; }
+        public int LineCount { get; }
 
         #region Texture
         Dictionary<string, Dictionary<string, Texture2D>> TextureList;
@@ -21,7 +20,11 @@ namespace ConsoleTiny
         public LogStyle(string stylePath)
         {
             XElement root = XDocument.Load(stylePath + "/Style.xml").Root;
-            StyleName = root.Element("StyleName").Value.ToString();
+
+            XElement infoElement = root.Element("Info");
+            StyleName = infoElement.Element("StyleName").Value.ToString();
+            TargetConsoleStyleName = infoElement.Element("TargetConsoleStyle").Value.ToString();
+            LineCount = int.Parse(infoElement.Element("LogLine").Value.ToString());
 
             TextureList = new Dictionary<string, Dictionary<string, Texture2D>>();
             foreach (XElement textureGroup in root.Element("Images").Elements())

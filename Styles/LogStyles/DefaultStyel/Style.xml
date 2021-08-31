@@ -4,12 +4,23 @@
     <StyleName>DefaultStyle</StyleName>
     <TargetConsoleStyle>DefaultStyle</TargetConsoleStyle>
 
-    <LogLine>3</LogLine>
   </Info>
 
+  <List>
+    <ListLineHeight>44</ListLineHeight>
+  </List>
+  <Icon>
+    <IconPosX>11</IconPosX>
+    <IconPosY>11</IconPosY>
 
-  <Images>
-    <!--<iconInfo></iconInfo>
+    <IconSizeX>20</IconSizeX>
+    <IconSizeY>20</IconSizeY>
+  </Icon>
+
+
+  <Resources>
+    <Images>
+      <!--<iconInfo></iconInfo>
     <iconWarn></iconWarn>
     <iconError></iconError>
     <iconInfoSmall></iconInfoSmall>
@@ -22,8 +33,8 @@
     <iconErrorMono></iconErrorMono>
     <iconFirstErrorMono></iconFirstErrorMono>
     <iconCustomFiltersMono></iconCustomFiltersMono>-->
-  </Images>
-
+    </Images>
+  </Resources>
   <AdditionalTexture>
 
   </AdditionalTexture>

@@ -16,12 +16,11 @@ namespace ConsoleTiny
     [EditorWindowTitle(title = "Console", useTypeNameAsIconName = true)]
     public class ConsoleWindow : EditorWindow, IHasCustomMenu
     {
-
         #region 窗口
         /// <summary>
         /// 单例
         /// </summary>
-        static ConsoleWindow ms_ConsoleWindow = null;
+        public static ConsoleWindow instence = null;
 
         /// <summary>
         /// 打开控制台
@@ -61,6 +60,9 @@ namespace ConsoleTiny
         /// </summary>
         private double m_NextRepaint = double.MaxValue;
 
+        /// <summary>
+        /// 当前列表区域的高度
+        /// </summary>
         int ms_LVHeight = 0;
 
         IConnectionState m_ConsoleAttachToPlayerState;
@@ -69,34 +71,13 @@ namespace ConsoleTiny
 
         #region Style
         /// <summary>
-        /// 行高
-        /// </summary>
-        int m_LineHeight;
-        /// <summary>
-        /// 边框高度
-        /// </summary>
-        int m_BorderHeight;
-
-        /// <summary>
-        /// log列表行高
-        /// </summary>
-        private int RowHeight => (LogStyleLineCount * m_LineHeight) + m_BorderHeight;
-
-        /// <summary>
         /// 刷新列表视图
         /// </summary>
-        void UpdateListView()
+        public void UpdateListView()
         {
-            m_LineHeight = Mathf.RoundToInt(ErrorStyle.lineHeight);
-            m_BorderHeight = ErrorStyle.border.top + ErrorStyle.border.bottom;
-            UpdateListView();
-
-            int newRowHeight = RowHeight;
-
-            // We reset the scroll list to auto scrolling whenever the log entry count is modified
-            logListView.rowHeight = 32;
+            logListView.rowHeight = ListLineHeight;
             logListView.row = -1;
-            logListView.scrollPos.y = EntryWrapped.Instence.GetCount() * newRowHeight;
+            logListView.scrollPos.y = EntryWrapped.Instence.GetCount() * ListLineHeight;
 
             Repaint();
         }
@@ -106,7 +87,7 @@ namespace ConsoleTiny
         #region 生命周期
         void OnEnable()
         {
-            ms_ConsoleWindow = this;//实现类似单例的效果
+            instence = this;//实现类似单例的效果
             titleContent.text = "Console T";//设置窗口名
 
             Application.logMessageReceived += DoLogChanged;//添加打印输出的回调函数
@@ -115,7 +96,7 @@ namespace ConsoleTiny
             logListView = new ListViewState(0, 0);//清空信息列表
             messageListView = new ListViewState(0, 14);//清空详细信息列表
             m_StacktraceLineContextClickRow = -1;//设置当前未选择跟踪堆栈的行
-
+            UpdateListView();
 
             if (m_ConsoleAttachToPlayerState == null)//如果未建立与玩家连接
                 m_ConsoleAttachToPlayerState = new ConsoleAttachToPlayerState(this);//建立与玩家连接
@@ -127,7 +108,7 @@ namespace ConsoleTiny
         void OnDisable()
         {
             Application.logMessageReceived -= DoLogChanged;
-            ms_ConsoleWindow = null;
+            instence = null;
 
             m_ConsoleAttachToPlayerState?.Dispose();
             m_ConsoleAttachToPlayerState = null;
@@ -136,9 +117,9 @@ namespace ConsoleTiny
 
         public void DoLogChanged(string logString, string stackTrace, LogType type)
         {
-            if (ms_ConsoleWindow == null)
+            if (instence == null)
                 return;
-            ms_ConsoleWindow.m_NextRepaint = EditorApplication.timeSinceStartup + 0.25f;
+            instence.m_NextRepaint = EditorApplication.timeSinceStartup + 0.25f;
         }
 
         void OnInspectorUpdate()
@@ -152,6 +133,7 @@ namespace ConsoleTiny
 
         void OnGUI()
         {
+            Debug.Log(0);
             Event e = Event.current;//获取当前正在处理的事件
             EntryWrapped.Instence.UpdateEntries();//更新所有入口
 
@@ -182,7 +164,7 @@ namespace ConsoleTiny
             {
                 if (logListView.scrollPos.y >= logListView.rowHeight * logListView.totalRows - ms_LVHeight)//判断滚动条是否在最低位置
                 {
-                    logListView.scrollPos.y = currCount * RowHeight - ms_LVHeight;
+                    logListView.scrollPos.y = currCount * ListLineHeight - ms_LVHeight;
                 }
             }
 
@@ -195,10 +177,10 @@ namespace ConsoleTiny
                     int showIndex = selectedIndex + 1;
                     if (currCount > showIndex)
                     {
-                        int showCount = ms_LVHeight / RowHeight;
+                        int showCount = ms_LVHeight / ListLineHeight;
                         showIndex = showIndex + showCount / 2;
                     }
-                    logListView.scrollPos.y = showIndex * RowHeight - ms_LVHeight;
+                    logListView.scrollPos.y = showIndex * ListLineHeight - ms_LVHeight;
                 }
             }
 
@@ -212,7 +194,7 @@ namespace ConsoleTiny
             if (collapsedChanged)
             {
                 logListView.row = -1;// unselect if collapsed flag changed
-                logListView.scrollPos.y = EntryWrapped.Instence.GetCount() * RowHeight;//滚动条滚到最低
+                logListView.scrollPos.y = EntryWrapped.Instence.GetCount() * ListLineHeight;//滚动条滚到最低
             }
             #endregion
 
@@ -285,7 +267,7 @@ namespace ConsoleTiny
 
             #region Vertical
             SplitterGUILayout.BeginVerticalSplit(new SplitterState(new float[] { 70, 30 }, new int[] { 32, 32 }, null));//开启纵向布局
-            EditorGUIUtility.SetIconSize(new Vector2(RowHeight, RowHeight));//设置图标
+            EditorGUIUtility.SetIconSize(new Vector2(IconSizeX, IconSizeY));//设置图标
             GUIContent tempContent = new GUIContent();
             int id = GUIUtility.GetControlID(0);
             int rowDoubleClicked = -1;//双击行号
@@ -318,12 +300,12 @@ namespace ConsoleTiny
                         s.Draw(el.position, true, false, isSelected, false);//绘制背景
                         #endregion
                         #region 图标
-                        GUIStyle iconStyle = GetStyleForErrorMode(flag, true, LogStyleLineCount == 1);//设置条目图标样式
+                        GUIStyle iconStyle = GetStyleForErrorMode(flag, true, true);//设置条目图标样式
                         iconStyle.Draw(el.position, false, false, isSelected, false);//绘制图标
                         #endregion
                         #region 文本
                         tempContent.text = parameters.Item1;//获取文本
-                        GUIStyle errorModeStyle = GetStyleForErrorMode(flag, false, LogStyleLineCount == 1);//绘制文本
+                        GUIStyle errorModeStyle = GetStyleForErrorMode(flag, false, true);//绘制文本
                         if (string.IsNullOrEmpty(EntryWrapped.Instence.searchString) || parameters.Item4 == -1 || parameters.Item4 >= parameters.Item1.Length)
                         {
                             errorModeStyle.Draw(el.position, tempContent, id, isSelected);//直接绘制文本
@@ -384,8 +366,8 @@ namespace ConsoleTiny
                 }
                 #endregion
 
-                #region 没看懂
-                //TODO:不懂
+                #region 获取输出列表总高度
+                //记录输出列表总高度
                 if (e.type != EventType.Layout && ListViewGUI.ilvState.rectHeight != 1)//
                 {
                     ms_LVHeight = ListViewGUI.ilvState.rectHeight;

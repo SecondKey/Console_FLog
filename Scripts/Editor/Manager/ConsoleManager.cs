@@ -57,13 +57,8 @@ namespace ConsoleTiny
         Dictionary<string, ConsoleStyle> ConsoleStyleList;
         Dictionary<string, LogStyle> LogStyleList;
 
-        ConsoleStyle consoleStyle;
-        LogStyle logStyle;
-
-        ConsoleStyle defaultConsoleStyle;
-        LogStyle defaultLogStyle;
-
-        public int LogStyleLineCount { get { return logStyle.LineCount; } }
+        public ConsoleStyle NowConsoleStyle { get; private set; }
+        public LogStyle NowLogStyle { get; private set; }
 
         public void LoadStyle()
         {
@@ -133,42 +128,42 @@ namespace ConsoleTiny
 
         private void ChangeConsoleStyle(string consoleStyleName)
         {
-            if (consoleStyle != null && consoleStyle.StyleName == consoleStyleName)
+            if (NowConsoleStyle != null && NowConsoleStyle.StyleName == consoleStyleName)
                 return;
             if (ConsoleStyleList.ContainsKey(consoleStyleName))
             {
-                consoleStyle = ConsoleStyleList[consoleStyleName];
+                NowConsoleStyle = ConsoleStyleList[consoleStyleName];
             }
             else
             {
-                Debug.Log("Console样式中没有指定的");
+                Debug.Log("没有指定的Console样式");
             }
         }
 
         public void ChangeLogStyle(string logStyleName)
         {
-            if (logStyle != null && logStyle.StyleName == logStyleName)
+            if (NowLogStyle != null && NowLogStyle.StyleName == logStyleName)
                 return;
 
             if (LogStyleList.ContainsKey(logStyleName))
             {
-                logStyle = LogStyleList[logStyleName];
-                ChangeConsoleStyle(logStyle.TargetConsoleStyleName);
+                NowLogStyle = LogStyleList[logStyleName];
+                ChangeConsoleStyle(NowLogStyle.TargetConsoleStyleName);
+                ConsoleWindow.instence.UpdateListView();
                 ConsoleWindow.RefreshWindow();
             }
             else
             {
-                Debug.Log("Log样式中没有指定的");
+                Debug.Log("没有指定的Log样式");
             }
         }
 
         public GUIStyle GetConsoleStyle(string styleName)
         {
-            Debug.Log(styleName);
-            GUIStyle style = consoleStyle.GetGUIStyle(styleName);
+            GUIStyle style = NowLogStyle.GetGUIStyle(styleName);
             if (style == null)
             {
-                style = defaultConsoleStyle.GetGUIStyle(styleName);
+                style = NowConsoleStyle.GetGUIStyle(styleName);
             }
             return style;
         }

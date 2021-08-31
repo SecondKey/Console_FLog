@@ -28,8 +28,37 @@ namespace ConsoleTiny
         #endregion
 
         #region Static 
+        #region Info
         public static string ConsoleTingPath = Application.dataPath + "/Plugin/ConsoleTing/";
-        public static int LogStyleLineCount { get { return ConsoleManager.Instence.LogStyleLineCount; } }
+        #endregion
+
+        #region List
+        public static int ListLineHeight { get { return ConsoleManager.Instence.NowLogStyle.ListLineHeight; } }
+        #endregion
+
+        #region BackGround
+
+        #endregion 
+
+        #region Icon
+        public static int IconSizeX { get { return ConsoleManager.Instence.NowLogStyle.IconSizeX; } }
+        public static int IconSizeY { get { return ConsoleManager.Instence.NowLogStyle.IconSizeY; } }
+        #endregion 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         #region GUIStyle
         public static GUIStyle Box { get { return GetGUIStyle("Box"); } }

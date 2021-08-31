@@ -9,9 +9,22 @@ namespace ConsoleTiny
 {
     public class LogStyle
     {
+        #region Info
         public string StyleName { get; }
         public string TargetConsoleStyleName { get; }
-        public int LineCount { get; }
+        #endregion
+
+        #region List
+        public int ListLineHeight { get; }
+        #endregion
+
+        #region Icon
+        public int IconSizeX { get; }
+        public int IconSizeY { get; }
+
+
+        #endregion 
+
 
         #region Texture
         Dictionary<string, Dictionary<string, Texture2D>> TextureList;
@@ -24,10 +37,17 @@ namespace ConsoleTiny
             XElement infoElement = root.Element("Info");
             StyleName = infoElement.Element("StyleName").Value.ToString();
             TargetConsoleStyleName = infoElement.Element("TargetConsoleStyle").Value.ToString();
-            LineCount = int.Parse(infoElement.Element("LogLine").Value.ToString());
+
+            XElement ListElement = root.Element("List");
+            ListLineHeight = int.Parse(ListElement.Element("ListLineHeight").Value.ToString());
+
+            XElement IconElement = root.Element("Icon");
+            IconSizeX = int.Parse(IconElement.Element("IconSizeX").Value.ToString());
+            IconSizeY = int.Parse(IconElement.Element("IconSizeY").Value.ToString());
+
 
             TextureList = new Dictionary<string, Dictionary<string, Texture2D>>();
-            foreach (XElement textureGroup in root.Element("Images").Elements())
+            foreach (XElement textureGroup in root.Element("Resources").Element("Images").Elements())
             {
                 Dictionary<string, Texture2D> tmpList = new Dictionary<string, Texture2D>();
                 foreach (XElement texture in textureGroup.Elements())
@@ -53,6 +73,12 @@ namespace ConsoleTiny
             t2d.LoadImage(imgBytes);
             t2d.Apply();
             return t2d;
+        }
+
+
+        public GUIStyle GetGUIStyle(string styleName)
+        {
+            return null;
         }
     }
 }

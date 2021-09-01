@@ -12,23 +12,53 @@ namespace ConsoleTiny
     /// </summary>
     class EntryInfo
     {
+        /// <summary>
+        /// 当前入口的行数
+        /// </summary>
         public int row;
+        /// <summary>
+        /// 这里才是全部的文本
+        /// </summary>
         public string lines;
+        /// <summary>
+        /// 这里是在信息列表中显示的文本
+        /// </summary>
         public string text;
-        public string pure; // remove tag
+        /// <summary>
+        /// 移除了tag后的文本
+        /// </summary>
+        public string pure; 
         /// <summary>
         /// pure的小写格式
         /// </summary>
         public string lower;
+        /// <summary>
+        /// 所包含的入数
+        /// </summary>
         public int entryCount;
+        /// <summary>
+        /// 选择开始的index
+        /// </summary>
         public int searchIndex;
+        /// <summary>
+        /// 选择结束的index
+        /// </summary>
         public int searchEndIndex;
+        /// <summary>
+        /// ConsoleFlags
+        /// </summary>
         public ConsoleFlags flags;
+        /// <summary>
+        /// 具体入口
+        /// </summary>
         public LogEntry entry;
         /// <summary>
         /// 所有的堆栈行信息
         /// </summary>
         public List<StacktraceLineInfo> stacktraceLineInfos;
+        /// <summary>
+        /// 每个tag的位置
+        /// </summary>
         public List<int> tagPosInfos;
     }
 

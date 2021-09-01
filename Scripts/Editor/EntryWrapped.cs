@@ -437,7 +437,7 @@ namespace ConsoleTiny
                 entry = entry
             };
             entryInfo.pure = GetPureLines(entryInfo.text, out entryInfo.tagPosInfos);
-            entryInfo.lower = entryInfo.pure.ToLower();//将  全部转换为小写
+            entryInfo.lower = entryInfo.pure.ToLower();//将全部转换为小写
             m_EntryInfos.Add(entryInfo);//将入口信息添加到入口列表中
 
             bool hasSearchString = !string.IsNullOrEmpty(m_SearchString);

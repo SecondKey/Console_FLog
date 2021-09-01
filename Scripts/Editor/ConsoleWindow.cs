@@ -78,7 +78,6 @@ namespace ConsoleTiny
         #endregion
 
 
-
         #region 生命周期
         void OnEnable()
         {
@@ -487,8 +486,6 @@ namespace ConsoleTiny
 
 
         #endregion
-
-
 
 
         #region Tools

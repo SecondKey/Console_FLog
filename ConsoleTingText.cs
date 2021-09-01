@@ -8,17 +8,23 @@ public class ConsoleTingText : MonoBehaviour
 
     private void Start()
     {
-        Color color = Color.red;
-        Texture2D t = new Texture2D(1, 1);
-        for (int i = 0; i < t.width; i++)
-        {
-            for (int j = 0; j < t.height; j++)
-            {
-                t.SetPixel(i, j, Color.red);
-            }
-        }
-        t.Apply();
-        this.GetComponent<Image>().sprite = Sprite.Create(t, new Rect(0, 0, t.width, t.height), Vector2.zero);
+        //Color color = Color.red;
+        //Texture2D t = new Texture2D(1, 1);
+        //for (int i = 0; i < t.width; i++)
+        //{
+        //    for (int j = 0; j < t.height; j++)
+        //    {
+        //        t.SetPixel(i, j, Color.red);
+        //    }
+        //}
+        //t.Apply();
+        //this.GetComponent<Image>().sprite = Sprite.Create(t, new Rect(0, 0, t.width, t.height), Vector2.zero);
+
+        Debug.Log(123);
+        Debug.LogWarning(123);
+        Debug.LogError(123);
+
+
     }
 
     // Update is called once per frame

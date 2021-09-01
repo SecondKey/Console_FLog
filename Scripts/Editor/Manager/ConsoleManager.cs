@@ -12,7 +12,11 @@ namespace ConsoleTiny
     {
         #region Instence
         private static ConsoleManager instence;
-        private ConsoleManager() { LoadStyle(); LoadConfig(); }
+        private ConsoleManager()
+        {
+            LoadStyle();
+            LoadConfig();
+        }
         public static ConsoleManager Instence
         {
             get
@@ -150,7 +154,6 @@ namespace ConsoleTiny
                 NowLogStyle = LogStyleList[logStyleName];
                 ChangeConsoleStyle(NowLogStyle.TargetConsoleStyleName);
                 ConsoleWindow.instence.UpdateListView();
-                ConsoleWindow.RefreshWindow();
             }
             else
             {
@@ -158,6 +161,8 @@ namespace ConsoleTiny
             }
         }
 
+
+        #region Resources/Style
         public GUIStyle GetConsoleStyle(string styleName)
         {
             GUIStyle style = NowLogStyle.GetGUIStyle(styleName);
@@ -167,5 +172,26 @@ namespace ConsoleTiny
             }
             return style;
         }
+
+        public Texture GetTexture(string logType)
+        {
+            return null;
+        }
+
+
+        GUIStyle style;
+        public GUIStyle GetItemBackgroundStyle(string logType, int num)
+        {
+            if (style == null && NowLogStyle.BackGroundStyleCollection.ContainsKey(logType))
+            {
+                return NowLogStyle.BackGroundStyleCollection[logType];
+            }
+            else
+            {
+                GUIStyle style = num % 2 == 0 ? OddBackground : EvenBackground;
+                return style;
+            }
+        }
+        #endregion 
     }
 }

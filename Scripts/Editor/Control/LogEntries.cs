@@ -58,5 +58,4 @@ namespace ConsoleTiny
         /// </summary>
         public int lineNum;
     }
-
 }

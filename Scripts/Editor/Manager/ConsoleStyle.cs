@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System.Xml.Linq;
-using static ConsoleTiny.ConsoleParameters;
 
 namespace ConsoleTiny
 {
@@ -59,7 +58,7 @@ namespace ConsoleTiny
         public void LoadGUIStyleFromXml(XElement styleElement)
         {
             string styleName = styleElement.Element("Name") != null ? styleElement.Element("Name").Value.ToString() : styleElement.Value;
-
+            Debug.Log(styleName);
             GUIStyle style = styleName;
             foreach (XElement styleParameters in styleElement.Elements())
             {

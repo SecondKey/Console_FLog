@@ -6,20 +6,8 @@
 
   </Info>
 
-  <List>
-    <ListLineHeight>44</ListLineHeight>
-  </List>
-  <Icon>
-    <IconPosX>11</IconPosX>
-    <IconPosY>11</IconPosY>
-
-    <IconSizeX>20</IconSizeX>
-    <IconSizeY>20</IconSizeY>
-  </Icon>
-
-
-  <Resources>
-    <Images>
+  <Image>
+    <Icon>
       <!--<iconInfo></iconInfo>
     <iconWarn></iconWarn>
     <iconError></iconError>
@@ -33,8 +21,50 @@
     <iconErrorMono></iconErrorMono>
     <iconFirstErrorMono></iconFirstErrorMono>
     <iconCustomFiltersMono></iconCustomFiltersMono>-->
-    </Images>
-  </Resources>
+    </Icon>
+
+    <BackGround>
+
+    </BackGround>
+  </Image>
+
+
+
+
+
+
+  <List>
+    <ListLineHeight>100</ListLineHeight>
+  </List>
+
+  <BackGround>
+    <Log>
+      <Color>0.2,0.2,0.2,1</Color>
+    </Log>
+    <Warning>
+      <Color>0.8,0.8,0.2,1</Color>
+    </Warning>
+    <Error>
+      <Color>0.8,0.2,0.2,1</Color>
+    </Error>
+  </BackGround>
+
+  <Icon>
+    <IconPosX>11</IconPosX>
+    <IconPosY>11</IconPosY>
+
+    <IconSizeX>20</IconSizeX>
+    <IconSizeY>20</IconSizeY>
+
+    <LogImage></LogImage>
+    <WarningImage></WarningImage>
+    <ErrorImage></ErrorImage>
+  </Icon>
+
+  <Text>
+
+  </Text>
+
   <AdditionalTexture>
 
   </AdditionalTexture>

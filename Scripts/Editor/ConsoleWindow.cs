@@ -22,6 +22,14 @@ namespace ConsoleTiny
         /// </summary>
         public static ConsoleWindow instence = null;
 
+        public ConsoleWindow()
+        {
+            position = new Rect(200, 200, 800, 400);//设置窗口起始位置
+            logListView = new ListViewState(0, 0);//清空信息列表
+            messageListView = new ListViewState(0, 14);//清空详细信息列表
+            m_StacktraceLineContextClickRow = -1;//设置当前未选择跟踪堆栈的行
+        }
+
         /// <summary>
         /// 打开控制台
         /// </summary>
@@ -69,19 +77,6 @@ namespace ConsoleTiny
 
         #endregion
 
-        #region Style
-        /// <summary>
-        /// 刷新列表视图
-        /// </summary>
-        public void UpdateListView()
-        {
-            logListView.rowHeight = ListLineHeight;
-            logListView.row = -1;
-            logListView.scrollPos.y = EntryWrapped.Instence.GetCount() * ListLineHeight;
-
-            Repaint();
-        }
-        #endregion
 
 
         #region 生命周期
@@ -92,11 +87,7 @@ namespace ConsoleTiny
 
             Application.logMessageReceived += DoLogChanged;//添加打印输出的回调函数
 
-            position = new Rect(200, 200, 800, 400);//设置窗口起始位置
-            logListView = new ListViewState(0, 0);//清空信息列表
-            messageListView = new ListViewState(0, 14);//清空详细信息列表
-            m_StacktraceLineContextClickRow = -1;//设置当前未选择跟踪堆栈的行
-            UpdateListView();
+
 
             if (m_ConsoleAttachToPlayerState == null)//如果未建立与玩家连接
                 m_ConsoleAttachToPlayerState = new ConsoleAttachToPlayerState(this);//建立与玩家连接
@@ -133,7 +124,10 @@ namespace ConsoleTiny
 
         void OnGUI()
         {
-            Debug.Log(0);
+            if (!nowUpdateListViewStyle)
+            {
+                UpdateListView();
+            }
             Event e = Event.current;//获取当前正在处理的事件
             EntryWrapped.Instence.UpdateEntries();//更新所有入口
 
@@ -296,23 +290,27 @@ namespace ConsoleTiny
 
                         #region 绘制条目
                         #region 背景
-                        GUIStyle s = el.row % 2 == 0 ? OddBackground : EvenBackground;//交替背景颜色
+                        GUIStyle s = ConsoleManager.Instence.GetItemBackgroundStyle("Error", el.row);//交替背景颜色
                         s.Draw(el.position, true, false, isSelected, false);//绘制背景
                         #endregion
                         #region 图标
-                        GUIStyle iconStyle = GetStyleForErrorMode(flag, true, true);//设置条目图标样式
-                        iconStyle.Draw(el.position, false, false, isSelected, false);//绘制图标
+                        //Rect iconRect = el.position;
+                        //iconRect.size = new Vector2(100, 100);
+                        //GUIStyle style = "Icon.Clip";
+                        //GUI.Label(iconRect, ConsoleManager.Instence.GetTexture(""), style);
+
+                        //GUIStyle iconStyle = GetStyleForErrorMode(flag, true, true);//设置条目图标样式
+                        //iconStyle.Draw(el.position, false, false, isSelected, false);//绘制图标
                         #endregion
                         #region 文本
                         tempContent.text = parameters.Item1;//获取文本
-                        GUIStyle errorModeStyle = GetStyleForErrorMode(flag, false, true);//绘制文本
+                        GUIStyle errorModeStyle = GetStyleForErrorMode(flag, false, true);
                         if (string.IsNullOrEmpty(EntryWrapped.Instence.searchString) || parameters.Item4 == -1 || parameters.Item4 >= parameters.Item1.Length)
                         {
                             errorModeStyle.Draw(el.position, tempContent, id, isSelected);//直接绘制文本
                         }
                         else
                         {
-                            //TODO:不太懂
                             errorModeStyle.DrawWithTextSelection(el.position, tempContent, GUIUtility.keyboardControl, parameters.Item4, parameters.Item5);//绘制可以选中的文本
                         }
                         #endregion
@@ -408,25 +406,20 @@ namespace ConsoleTiny
         }
         #endregion
 
-        #region Tools
-        /// <summary>
-        /// 判断控制台全部标记是否包含目标标记
-        /// </summary>
-        /// <param name="flags"></param>
-        /// <returns></returns>
-        private static bool HasFlag(ConsoleFlags flags)
-        {
-            return (UnityEditor.LogEntries.consoleFlags & (int)flags) != 0;
-        }
+        #region Style
+        bool nowUpdateListViewStyle = false;
 
         /// <summary>
-        /// 设置控制台标记
+        /// 刷新列表视图
         /// </summary>
-        /// <param name="flags"></param>
-        /// <param name="val"></param>
-        private static void SetFlag(ConsoleFlags flags, bool val)
+        public void UpdateListView()
         {
-            UnityEditor.LogEntries.SetConsoleFlag((int)flags, val);
+            nowUpdateListViewStyle = true;
+            logListView.rowHeight = ListLineHeight;
+            logListView.row = -1;
+            logListView.scrollPos.y = EntryWrapped.Instence.GetCount() * ListLineHeight;
+
+            Repaint();
         }
 
         /// <summary>
@@ -491,6 +484,34 @@ namespace ConsoleTiny
 
             return ConsoleParameters.LogStyle;
         }
+
+
+        #endregion
+
+
+
+
+        #region Tools
+        /// <summary>
+        /// 判断控制台全部标记是否包含目标标记
+        /// </summary>
+        /// <param name="flags"></param>
+        /// <returns></returns>
+        private static bool HasFlag(ConsoleFlags flags)
+        {
+            return (UnityEditor.LogEntries.consoleFlags & (int)flags) != 0;
+        }
+
+        /// <summary>
+        /// 设置控制台标记
+        /// </summary>
+        /// <param name="flags"></param>
+        /// <param name="val"></param>
+        private static void SetFlag(ConsoleFlags flags, bool val)
+        {
+            UnityEditor.LogEntries.SetConsoleFlag((int)flags, val);
+        }
+
         #endregion 
 
         #region 点击索引到游戏物体
@@ -755,14 +776,6 @@ namespace ConsoleTiny
 
 
         #endregion
-
-
-        #region OutControl
-        public static void RefreshWindow()
-        {
-
-        }
-        #endregion 
 
         #region 添加菜单项 IHasCustomMenu Members
         /// <summary>

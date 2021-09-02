@@ -260,10 +260,10 @@ namespace ConsoleTiny
 
             #region Vertical
             SplitterGUILayout.BeginVerticalSplit(new SplitterState(new float[] { 70, 30 }, new int[] { 32, 32 }, null));//开启纵向布局
-            EditorGUIUtility.SetIconSize(new Vector2(IconSizeX, IconSizeY));//设置图标
-            GUIContent tempContent = new GUIContent();
+            //EditorGUIUtility.SetIconSize(new Vector2(IconSizeX, IconSizeY));//设置图标
             int id = GUIUtility.GetControlID(0);
             int rowDoubleClicked = -1;//双击行号
+            GUIContent tempContent = new GUIContent();
 
             /////@TODO: Make Frame selected work with ListViewState
             using (new GettingLogEntriesScope(logListView))
@@ -284,12 +284,11 @@ namespace ConsoleTiny
                     else if (e.type == EventType.Repaint)//如果目标事件是每帧发送的刷新消息
                     {
                         var parameters = EntryWrapped.Instence.GetEntryLinesAndFlagAndCount(el.row);//获取入口的数据1：文本 2：类型 3：入口数量 4：选择的条目 5：多选结束条目
-                        ConsoleFlags flag = (ConsoleFlags)parameters.Item2;//输出的类型
                         bool isSelected = EntryWrapped.Instence.IsEntrySelected(el.row);//条目是否被选中
 
                         #region 绘制条目
                         #region 背景
-                        GUIStyle s = ConsoleManager.Instence.GetItemBackgroundStyle("Error", el.row);//交替背景颜色
+                        GUIStyle s = ConsoleManager.Instence.GetItemBackgroundStyle(parameters.flags, !string.IsNullOrEmpty(parameters.logGroup), el.row);//交替背景颜色
                         s.Draw(el.position, true, false, isSelected, false);//绘制背景
                         #endregion
                         #region 图标
@@ -302,22 +301,24 @@ namespace ConsoleTiny
                         //iconStyle.Draw(el.position, false, false, isSelected, false);//绘制图标
                         #endregion
                         #region 文本
-                        tempContent.text = parameters.Item1;//获取文本
-                        GUIStyle errorModeStyle = GetStyleForErrorMode(flag, false, true);
-                        if (string.IsNullOrEmpty(EntryWrapped.Instence.searchString) || parameters.Item4 == -1 || parameters.Item4 >= parameters.Item1.Length)
+                        tempContent = new GUIContent(ConsoleManager.Instence.GetItemText(parameters.lines, parameters.logGroup, parameters.flags));
+                        GUIStyle errorModeStyle = ConsoleManager.Instence.GetItemTextStyle(parameters.flags, !string.IsNullOrEmpty(parameters.logGroup));
+                        if (string.IsNullOrEmpty(EntryWrapped.Instence.searchString) || parameters.searchIndex == -1 || parameters.searchIndex >= parameters.text.Length)
                         {
                             errorModeStyle.Draw(el.position, tempContent, id, isSelected);//直接绘制文本
                         }
                         else
                         {
-                            errorModeStyle.DrawWithTextSelection(el.position, tempContent, GUIUtility.keyboardControl, parameters.Item4, parameters.Item5);//绘制可以选中的文本
+                            errorModeStyle.DrawWithTextSelection(el.position, tempContent, GUIUtility.keyboardControl, parameters.searchIndex, parameters.searchEndIndex);//绘制可以选中的文本
                         }
                         #endregion
                         #region 折叠数字角标
                         if (EntryWrapped.Instence.collapse)//如果需要折叠
                         {
                             Rect badgeRect = el.position;//角标位置
-                            tempContent.text = parameters.Item3.ToString(CultureInfo.InvariantCulture);//角标中的文本
+
+                            tempContent = new GUIContent();
+                            tempContent.text = parameters.entryCount.ToString(CultureInfo.InvariantCulture);//角标中的文本
                             Vector2 badgeSize = CountBadge.CalcSize(tempContent);//计算角标大小
                             badgeRect.xMin = badgeRect.xMax - badgeSize.x;
                             badgeRect.yMin += ((badgeRect.yMax - badgeRect.yMin) - badgeSize.y) * 0.5f;

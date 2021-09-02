@@ -7,6 +7,13 @@ using System.Drawing;
 
 namespace ConsoleTiny
 {
+    public struct LogItemTextStyle
+    {
+        public GUIStyle style;
+        public string Text;
+
+    }
+
     public class LogStyle
     {
         #region Info
@@ -19,8 +26,6 @@ namespace ConsoleTiny
         public Dictionary<string, Dictionary<string, Texture2D>> IconTextureCollection;
         #endregion
 
-
-
         #region List
         public int ListLineHeight { get; }
         #endregion
@@ -32,6 +37,11 @@ namespace ConsoleTiny
         #region Icon
         public int IconSizeX { get; }
         public int IconSizeY { get; }
+        #endregion 
+
+        #region Text
+        public Dictionary<string, LogItemTextStyle> LogItemTextStyleCollection;
+        public Dictionary<string, string> LogGroupCollection;
         #endregion 
 
 
@@ -103,6 +113,37 @@ namespace ConsoleTiny
             IconSizeY = int.Parse(IconElement.Element("IconSizeY").Value.ToString());
             #endregion
 
+            #region Text
+            LogItemTextStyleCollection = new Dictionary<string, LogItemTextStyle>();
+            foreach (XElement textStyle in root.Element("Text").Elements())
+            {
+                LogItemTextStyle TextStyle = new LogItemTextStyle();
+                if (textStyle.Element("Style") != null)
+                {
+                    TextStyle.style = new GUIStyle(textStyle.Element("Style").Value);
+                }
+                else
+                {
+                    TextStyle.style = new GUIStyle("CN EntryInfo");
+                }
+                if (textStyle.Element("Color") != null)
+                {
+                    TextStyle.style.normal.textColor = textStyle.Element("Color").Value.GetColor();
+                }
+
+                if (textStyle.Element("Text") != null)
+                {
+                    TextStyle.Text = textStyle.Element("Text").Value;
+                }
+                LogItemTextStyleCollection.Add(textStyle.Name.ToString(), TextStyle);
+            }
+
+            LogGroupCollection = new Dictionary<string, string>();
+            foreach (XElement logGroup in root.Element("LogGroup").Elements())
+            {
+                LogGroupCollection.Add(logGroup.Name.ToString(), logGroup.Value);
+            }
+            #endregion 
         }
 
         public Texture2D LoadImageToTexture(string path)

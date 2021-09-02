@@ -178,20 +178,81 @@ namespace ConsoleTiny
             return null;
         }
 
-
-        GUIStyle style;
-        public GUIStyle GetItemBackgroundStyle(string logType, int num)
+        public GUIStyle GetItemBackgroundStyle(ConsoleFlags logType, bool userLog, int num)
         {
-            if (style == null && NowLogStyle.BackGroundStyleCollection.ContainsKey(logType))
+            string text = ConsoleFlagsToString(logType, userLog);
+            if (NowLogStyle.BackGroundStyleCollection.ContainsKey(text))
             {
-                return NowLogStyle.BackGroundStyleCollection[logType];
+                return NowLogStyle.BackGroundStyleCollection[text];
             }
-            else
+            else if (userLog == true)
             {
-                GUIStyle style = num % 2 == 0 ? OddBackground : EvenBackground;
-                return style;
+                text = ConsoleFlagsToString(logType, false);
+                if (NowLogStyle.BackGroundStyleCollection.ContainsKey(text))
+                {
+                    return NowLogStyle.BackGroundStyleCollection[text];
+                }
             }
+            GUIStyle style = num % 2 == 0 ? OddBackground : EvenBackground;
+            return style;
         }
-        #endregion 
+
+        public GUIStyle GetItemTextStyle(ConsoleFlags logType, bool userLog)
+        {
+            string consoleFlags = ConsoleFlagsToString(logType, userLog);
+            if (!string.IsNullOrEmpty(consoleFlags) && NowLogStyle.LogItemTextStyleCollection.ContainsKey(consoleFlags))
+            {
+                return NowLogStyle.LogItemTextStyleCollection[consoleFlags].style;
+            }
+            return "CN EntryInfo";
+        }
+
+        public string GetItemText(string text, string logGroup, ConsoleFlags logType)
+        {
+            string t = "";
+            string consoleFlags = ConsoleFlagsToString(logType, !string.IsNullOrEmpty(logGroup));
+            if (!string.IsNullOrEmpty(consoleFlags) && NowLogStyle.LogItemTextStyleCollection.ContainsKey(consoleFlags))
+            {
+                t += NowLogStyle.LogItemTextStyleCollection[consoleFlags].Text;
+                t += "\n";
+            }
+            if (!string.IsNullOrEmpty(logGroup) && NowLogStyle.LogGroupCollection.ContainsKey(logGroup))
+            {
+                t += NowLogStyle.LogGroupCollection[logGroup];
+                t += "\n";
+            }
+
+            t += text;
+            return t;
+        }
+        #endregion
+
+
+        public string ConsoleFlagsToString(ConsoleFlags flags, bool userLog)
+        {
+            string text;
+            switch (flags)
+            {
+                case ConsoleFlags.LogLevelLog:
+                    text = "Log";
+                    break;
+                case ConsoleFlags.LogLevelWarning:
+                    text = "Warning";
+                    break;
+                case ConsoleFlags.LogLevelError:
+                    text = "Error";
+                    break;
+
+                default:
+                    return "";
+            }
+            if (userLog)
+            {
+                text = "User" + text;
+            }
+            return text;
+        }
+
+
     }
 }

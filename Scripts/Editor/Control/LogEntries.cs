@@ -10,7 +10,7 @@ namespace ConsoleTiny
     /// <summary>
     /// 跟踪堆栈入口信息
     /// </summary>
-    class EntryInfo
+    internal class EntryInfo
     {
         /// <summary>
         /// 当前入口的行数
@@ -21,19 +21,23 @@ namespace ConsoleTiny
         /// </summary>
         public string lines;
         /// <summary>
+        /// 文本的起始标签
+        /// </summary>
+        public string logGroup;
+        /// <summary>
         /// 这里是在信息列表中显示的文本
         /// </summary>
         public string text;
         /// <summary>
-        /// 移除了tag后的文本
+        /// 移除了标签(HTML标签)后的文本
         /// </summary>
-        public string pure; 
+        public string pure;
         /// <summary>
         /// pure的小写格式
         /// </summary>
         public string lower;
         /// <summary>
-        /// 所包含的入数
+        /// 所有该类入口数（折叠时有效）
         /// </summary>
         public int entryCount;
         /// <summary>
@@ -59,13 +63,13 @@ namespace ConsoleTiny
         /// <summary>
         /// 每个tag的位置
         /// </summary>
-        public List<int> tagPosInfos;
+        public List<int> HTMLTagPosInfos;
     }
 
     /// <summary>
     /// 堆栈跟踪行信息
     /// </summary>
-    class StacktraceLineInfo
+    public class StacktraceLineInfo
     {
         /// <summary>
         /// 用于复制的文本信息

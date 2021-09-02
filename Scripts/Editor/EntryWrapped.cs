@@ -255,16 +255,25 @@ namespace ConsoleTiny
         /// </summary>
         /// <param name="row">行数</param>
         /// <returns>目标值元组</returns>
-        public (string, int, int, int, int) GetEntryLinesAndFlagAndCount(int row)
+        internal EntryInfo GetEntryLinesAndFlagAndCount(int row)
         {
             if (row < 0 || row >= m_FilteredInfos.Count)
             {
                 return default;
             }
 
-            EntryInfo entryInfo = m_FilteredInfos[row];
-            return (entryInfo.text, (int)entryInfo.flags, entryInfo.entryCount, entryInfo.searchIndex, entryInfo.searchEndIndex);
+            return m_FilteredInfos[row];
         }
+        //public (string, int, int, int, int) GetEntryLinesAndFlagAndCount(int row)
+        //{
+        //    if (row < 0 || row >= m_FilteredInfos.Count)
+        //    {
+        //        return default;
+        //    }
+
+        //    EntryInfo entryInfo = m_FilteredInfos[row];
+        //    return (entryInfo.text, (int)entryInfo.flags, entryInfo.entryCount, entryInfo.searchIndex, entryInfo.searchEndIndex);
+        //}
 
         /// <summary>
         /// 根据输出类型获取输出数量
@@ -431,12 +440,17 @@ namespace ConsoleTiny
             {
                 row = row,
                 lines = text,
-                text = GetNumberLines(text),
                 entryCount = entryCount,
                 flags = GetConsoleFlagFromMode(entry.mode),
                 entry = entry
             };
-            entryInfo.pure = GetPureLines(entryInfo.text, out entryInfo.tagPosInfos);
+            if (entryInfo.lines.Substring(0, 3) == "#!@")
+            {
+                entryInfo.logGroup = entryInfo.lines.Substring(3, entryInfo.lines.IndexOf(";") - 3);
+                entryInfo.lines = entryInfo.lines.Substring(entryInfo.lines.IndexOf(";") + 1);
+            }
+            entryInfo.text = GetNumberLines(entryInfo.lines);
+            entryInfo.pure = GetPureLines(entryInfo.text, out entryInfo.HTMLTagPosInfos);
             entryInfo.lower = entryInfo.pure.ToLower();//将全部转换为小写
             m_EntryInfos.Add(entryInfo);//将入口信息添加到入口列表中
 
@@ -479,7 +493,7 @@ namespace ConsoleTiny
             foreach (var entryInfo in m_EntryInfos)//遍历所有入口
             {
                 entryInfo.text = GetNumberLines(entryInfo.lines);//设置文本
-                entryInfo.pure = GetPureLines(entryInfo.text, out entryInfo.tagPosInfos);
+                entryInfo.pure = GetPureLines(entryInfo.text, out entryInfo.HTMLTagPosInfos);
                 entryInfo.lower = entryInfo.pure.ToLower();
             }
         }
@@ -890,8 +904,8 @@ namespace ConsoleTiny
             }
 
             entryInfo.searchEndIndex = GetOriginalCharIndex(entryInfo.searchIndex + searchLength,
-                entryInfo.tagPosInfos);
-            entryInfo.searchIndex = GetOriginalCharIndex(entryInfo.searchIndex, entryInfo.tagPosInfos);
+                entryInfo.HTMLTagPosInfos);
+            entryInfo.searchIndex = GetOriginalCharIndex(entryInfo.searchIndex, entryInfo.HTMLTagPosInfos);
         }
 
         #endregion

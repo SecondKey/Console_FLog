@@ -38,14 +38,23 @@
   </List>
 
   <BackGround>
+    <UserLog>
+      <Color>0.8,0.8,0.2,0.5</Color>
+    </UserLog>
+    <UserWarning>
+      <Color>0.8,0.8,0.2,0.5</Color>
+    </UserWarning>
+    <UserError>
+      <Color>0.8,0.2,0.2,0.5</Color>
+    </UserError>
     <Log>
-      <Color>0.2,0.2,0.2,1</Color>
+      <Color>0.8,0.8,0.2,0.5</Color>
     </Log>
     <Warning>
-      <Color>0.8,0.8,0.2,1</Color>
+      <Color>0.8,0.8,0.2,0.5</Color>
     </Warning>
     <Error>
-      <Color>0.8,0.2,0.2,1</Color>
+      <Color>0.8,0.2,0.2,0.5</Color>
     </Error>
   </BackGround>
 
@@ -62,8 +71,36 @@
   </Icon>
 
   <Text>
-
+    <UserLog>
+      <Text>用户日志:</Text>
+      <Color>0,0,0,0.5</Color>
+    </UserLog>
+    <UserWarning>
+      <Text>用户警告:</Text>
+      <Color>0,0,0,0.5</Color>
+    </UserWarning>
+    <UserError>
+      <Text>用户错误:</Text>
+      <Color>0,0,0,0.5</Color>
+    </UserError>
+    <Log>
+      <Text>系统日志:</Text>
+      <Color>0,0,0,0.5</Color>
+    </Log>
+    <Warning>
+      <Text>系统警告:</Text>
+      <Color>0,0,0,0.5</Color>
+    </Warning>
+    <Error>
+      <Text>系统错误:</Text>
+      <Color>0,0,0,0.5</Color>
+    </Error>
   </Text>
+
+  <LogGroup>
+    <TEMP>临时输出：</TEMP>
+    <IOC>依赖注入输出：</IOC>
+  </LogGroup>
 
   <AdditionalTexture>
 

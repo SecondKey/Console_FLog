@@ -114,13 +114,6 @@ namespace ConsoleTiny
             /// </summary>
             VisualScriptingError = 1 << 22
         };
-
-        public int numberOfLines
-        {
-            private get { return m_NumberOfLines; }
-            set { m_NumberOfLines = value; ResetEntriesForNumberLines(); }
-        }
-
         /// <summary>
         /// 是否显示时间戳
         /// </summary>
@@ -131,7 +124,6 @@ namespace ConsoleTiny
             {
                 m_ShowTimestamp = value;
                 EditorPrefs.SetBool(kPrefShowTimestamp, value);
-                ResetEntriesForNumberLines();
             }
         }
 
@@ -194,7 +186,6 @@ namespace ConsoleTiny
         private double m_LastSearchStringTime;
 
         private bool m_Init;
-        private int m_NumberOfLines;
         private bool m_ShowTimestamp;
         private bool m_Collapse;
         private int[] m_TypeCounts = new[] { 0, 0, 0 };
@@ -434,22 +425,40 @@ namespace ConsoleTiny
         /// <param name="entry">入口</param>
         /// <param name="text">文本</param>
         /// <param name="entryCount">入口号</param>
-        private void AddEntry(int row, LogEntry entry, string text, int entryCount)
+        private void AddEntry(int row, LogEntry entry, string lines, int entryCount)
         {
             EntryInfo entryInfo = new EntryInfo
             {
                 row = row,
-                lines = text,
+                lines = lines,
+                text = lines,
                 entryCount = entryCount,
                 flags = GetConsoleFlagFromMode(entry.mode),
                 entry = entry
             };
-            if (entryInfo.lines.Substring(0, 3) == "#!@")
+
+            if (showTimestamp)
             {
-                entryInfo.logGroup = entryInfo.lines.Substring(3, entryInfo.lines.IndexOf(";") - 3);
-                entryInfo.lines = entryInfo.lines.Substring(entryInfo.lines.IndexOf(";") + 1);
+                entryInfo.timeText = lines.Substring(0, lines.IndexOf("]"));
+                entryInfo.text = lines.Substring(lines.IndexOf("]") + 2);
             }
-            entryInfo.text = GetNumberLines(entryInfo.lines);
+            else
+            {
+                entryInfo.timeText = "";
+            }
+
+
+            if (entryInfo.text.Substring(0, 3) == "#!@")
+            {
+                entryInfo.logGroup = entryInfo.text.Substring(3, entryInfo.text.IndexOf(";") - 3);
+                int i = entryInfo.text.IndexOf(";") + 1;
+                int j = entryInfo.text.IndexOf("#!!") - i;
+                entryInfo.text = entryInfo.text.Substring(i, j);
+            }
+            else
+            {
+                entryInfo.logGroup = "";
+            }
             entryInfo.pure = GetPureLines(entryInfo.text, out entryInfo.HTMLTagPosInfos);
             entryInfo.lower = entryInfo.pure.ToLower();//将全部转换为小写
             m_EntryInfos.Add(entryInfo);//将入口信息添加到入口列表中
@@ -485,18 +494,6 @@ namespace ConsoleTiny
             }
         }
 
-        /// <summary>
-        /// 根据行刷新所有入口
-        /// </summary>
-        private void ResetEntriesForNumberLines()
-        {
-            foreach (var entryInfo in m_EntryInfos)//遍历所有入口
-            {
-                entryInfo.text = GetNumberLines(entryInfo.lines);//设置文本
-                entryInfo.pure = GetPureLines(entryInfo.text, out entryInfo.HTMLTagPosInfos);
-                entryInfo.lower = entryInfo.pure.ToLower();
-            }
-        }
 
         /// <summary>
         /// 检查是否初始化
@@ -643,41 +640,6 @@ namespace ConsoleTiny
             }
             // Logs
             return ConsoleFlags.LogLevelLog;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="s"></param>
-        /// <returns></returns>
-        private string GetNumberLines(string s)
-        {
-            int num = numberOfLines;
-            int i = -1;
-            for (int j = 1, k = 0; j <= num; j++)
-            {
-                i = s.IndexOf('\n', i + 1);
-                if (i == -1)
-                {
-                    if (k < num)
-                    {
-                        i = s.Length;
-                    }
-                    break;
-                }
-                k++;
-            }
-
-            if (i != -1)
-            {
-                int startIndex = 0;
-                if (!showTimestamp)
-                {
-                    startIndex = 11;
-                }
-                return s.Substring(startIndex, i - startIndex);
-            }
-            return s;
         }
 
         public void ExportLog()

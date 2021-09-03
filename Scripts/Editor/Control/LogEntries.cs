@@ -17,17 +17,20 @@ namespace ConsoleTiny
         /// </summary>
         public int row;
         /// <summary>
+        /// log的时间
+        /// </summary>
+        public string timeText;
+
+        #region Text
+        /// <summary>
         /// 这里才是全部的文本
         /// </summary>
         public string lines;
         /// <summary>
-        /// 文本的起始标签
-        /// </summary>
-        public string logGroup;
-        /// <summary>
         /// 这里是在信息列表中显示的文本
         /// </summary>
         public string text;
+
         /// <summary>
         /// 移除了标签(HTML标签)后的文本
         /// </summary>
@@ -36,6 +39,18 @@ namespace ConsoleTiny
         /// pure的小写格式
         /// </summary>
         public string lower;
+        #endregion 
+        /// <summary>
+        /// 文本的起始标签
+        /// </summary>
+        public string logGroup;
+        /// <summary>
+        /// 显示在信息列表中的行数
+        /// </summary>
+        public int numberLines;
+
+
+
         /// <summary>
         /// 所有该类入口数（折叠时有效）
         /// </summary>

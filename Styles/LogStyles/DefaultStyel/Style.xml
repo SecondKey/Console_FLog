@@ -4,6 +4,23 @@
     <StyleName>DefaultStyle</StyleName>
     <TargetConsoleStyle>DefaultStyle</TargetConsoleStyle>
 
+    <List>
+      <ListLineHeight>100</ListLineHeight>
+    </List>
+
+    <Icon>
+      <IconPosX>11</IconPosX>
+      <IconPosY>11</IconPosY>
+
+      <IconSizeX>20</IconSizeX>
+      <IconSizeY>20</IconSizeY>
+    </Icon>
+    <Text>
+      <TextOffectX>100</TextOffectX>
+      <TextOffectY>5</TextOffectY>
+      
+      <FontSize>13</FontSize>
+    </Text>
   </Info>
 
   <Image>
@@ -29,51 +46,46 @@
   </Image>
 
 
-
-
-
-
-  <List>
-    <ListLineHeight>100</ListLineHeight>
-  </List>
-
   <BackGround>
     <UserLog>
-      <Color>0.8,0.8,0.2,0.5</Color>
+      <Color>0.2,0.2,0.2,1</Color>
+      <Color>0.3,0.3,0.3,1</Color>
     </UserLog>
     <UserWarning>
       <Color>0.8,0.8,0.2,0.5</Color>
+      <Color>0.8,0.8,0.2,0.5</Color>
     </UserWarning>
     <UserError>
-      <Color>0.8,0.2,0.2,0.5</Color>
+      <Color>0.8,0.8,0.2,0.5</Color>
+      <Color>0.8,0.8,0.2,0.5</Color>
     </UserError>
     <Log>
-      <Color>0.8,0.8,0.2,0.5</Color>
+      <Color>0.2,0.2,0.2,1</Color>
+      <Color>0.3,0.3,0.3,1</Color>
     </Log>
     <Warning>
       <Color>0.8,0.8,0.2,0.5</Color>
+      <Color>0.8,0.8,0.2,0.5</Color>
     </Warning>
     <Error>
-      <Color>0.8,0.2,0.2,0.5</Color>
+      <Color>0.8,0.8,0.2,0.5</Color>
+      <Color>0.8,0.8,0.2,0.5</Color>
     </Error>
   </BackGround>
 
   <Icon>
-    <IconPosX>11</IconPosX>
-    <IconPosY>11</IconPosY>
-
-    <IconSizeX>20</IconSizeX>
-    <IconSizeY>20</IconSizeY>
-
-    <LogImage></LogImage>
-    <WarningImage></WarningImage>
-    <ErrorImage></ErrorImage>
+    <UserLog></UserLog>
+    <UserWarning></UserWarning>
+    <UserError></UserError>
+    <Log></Log>
+    <Warning></Warning>
+    <Error></Error>
   </Icon>
 
   <Text>
     <UserLog>
       <Text>用户日志:</Text>
-      <Color>0,0,0,0.5</Color>
+      <Color>0.7,0.7,0.7,1</Color>
     </UserLog>
     <UserWarning>
       <Text>用户警告:</Text>
@@ -85,7 +97,7 @@
     </UserError>
     <Log>
       <Text>系统日志:</Text>
-      <Color>0,0,0,0.5</Color>
+      <Color>0.8,0.8,0.8,0.8</Color>
     </Log>
     <Warning>
       <Text>系统警告:</Text>
@@ -98,7 +110,7 @@
   </Text>
 
   <LogGroup>
-    <TEMP>临时输出：</TEMP>
+    <TMP>临时输出：</TMP>
     <IOC>依赖注入输出：</IOC>
   </LogGroup>
 

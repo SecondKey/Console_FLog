@@ -297,19 +297,20 @@ namespace ConsoleTiny
                         //GUIStyle style = "Icon.Clip";
                         //GUI.Label(iconRect, ConsoleManager.Instence.GetTexture(""), style);
 
-                        //GUIStyle iconStyle = GetStyleForErrorMode(flag, true, true);//设置条目图标样式
+                        //GUIStyle iconStyle = GetStyleForErrorMode(flag, true, true);/ /设置条目图标样式
                         //iconStyle.Draw(el.position, false, false, isSelected, false);//绘制图标
                         #endregion
                         #region 文本
-                        tempContent = new GUIContent(ConsoleManager.Instence.GetItemText(parameters.lines, parameters.logGroup, parameters.flags));
+                        tempContent = new GUIContent(ConsoleManager.Instence.GetItemText(parameters.text, parameters.logGroup, parameters.flags));
                         GUIStyle errorModeStyle = ConsoleManager.Instence.GetItemTextStyle(parameters.flags, !string.IsNullOrEmpty(parameters.logGroup));
+                        errorModeStyle.fixedHeight = 100;
                         if (string.IsNullOrEmpty(EntryWrapped.Instence.searchString) || parameters.searchIndex == -1 || parameters.searchIndex >= parameters.text.Length)
                         {
-                            errorModeStyle.Draw(el.position, tempContent, id, isSelected);//直接绘制文本
+                            errorModeStyle.Draw(ConsoleManager.Instence.GetTextRect(el.position), tempContent, id, isSelected);//直接绘制文本
                         }
                         else
                         {
-                            errorModeStyle.DrawWithTextSelection(el.position, tempContent, GUIUtility.keyboardControl, parameters.searchIndex, parameters.searchEndIndex);//绘制可以选中的文本
+                            errorModeStyle.DrawWithTextSelection(ConsoleManager.Instence.GetTextRect(el.position), tempContent, GUIUtility.keyboardControl, parameters.searchIndex, parameters.searchEndIndex);//绘制可以选中的文本
                         }
                         #endregion
                         #region 折叠数字角标

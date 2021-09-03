@@ -19,6 +19,22 @@ namespace ConsoleTiny
         #region Info
         public string StyleName { get; }
         public string TargetConsoleStyleName { get; }
+
+        #region List
+        public int ListLineHeight { get; }
+        #endregion
+
+        #region TextPositionOffect
+        public int TextOffectX { get; }
+        public int TextOffectY { get; }
+
+        public int FontSize { get; }
+        #endregion 
+
+        #region Icon
+        public int IconSizeX { get; }
+        public int IconSizeY { get; }
+        #endregion 
         #endregion
 
         #region Texture
@@ -26,18 +42,12 @@ namespace ConsoleTiny
         public Dictionary<string, Dictionary<string, Texture2D>> IconTextureCollection;
         #endregion
 
-        #region List
-        public int ListLineHeight { get; }
-        #endregion
+
 
         #region BackGround
-        public Dictionary<string, GUIStyle> BackGroundStyleCollection;
+        public Dictionary<string, List<GUIStyle>> BackGroundStyleCollection;
         #endregion
 
-        #region Icon
-        public int IconSizeX { get; }
-        public int IconSizeY { get; }
-        #endregion 
 
         #region Text
         public Dictionary<string, LogItemTextStyle> LogItemTextStyleCollection;
@@ -54,6 +64,20 @@ namespace ConsoleTiny
             XElement infoElement = root.Element("Info");
             StyleName = infoElement.Element("StyleName").Value.ToString();
             TargetConsoleStyleName = infoElement.Element("TargetConsoleStyle").Value.ToString();
+
+            XElement ListElement = infoElement.Element("List");
+            ListLineHeight = int.Parse(ListElement.Element("ListLineHeight").Value.ToString());
+
+
+            XElement IconElement = infoElement.Element("Icon");
+            IconSizeX = int.Parse(IconElement.Element("IconSizeX").Value.ToString());
+            IconSizeY = int.Parse(IconElement.Element("IconSizeY").Value.ToString());
+
+            XElement TextElement = infoElement.Element("Text");
+            TextOffectX = int.Parse(TextElement.Element("TextOffectX").Value.ToString());
+            TextOffectY = int.Parse(TextElement.Element("TextOffectY").Value.ToString());
+
+            FontSize = int.Parse(TextElement.Element("FontSize").Value.ToString());
             #endregion
 
             #region Texture
@@ -78,39 +102,33 @@ namespace ConsoleTiny
 
 
 
-            #region List
-            XElement ListElement = root.Element("List");
-            ListLineHeight = int.Parse(ListElement.Element("ListLineHeight").Value.ToString());
-            #endregion
-
             #region BackGround
-            BackGroundStyleCollection = new Dictionary<string, GUIStyle>();
+            BackGroundStyleCollection = new Dictionary<string, List<GUIStyle>>();
             foreach (XElement backGroundStyle in root.Element("BackGround").Elements())
             {
-                GUIStyle style = new GUIStyle();
-                if (backGroundStyle.Element("Color") != null)
+                List<GUIStyle> styleList = new List<GUIStyle>();
+                foreach (XElement backGroundItemStyle in backGroundStyle.Elements())
                 {
-                    Texture2D texture = new Texture2D(1, 1);
-                    texture.SetPixel(1, 1, backGroundStyle.Element("Color").Value.GetColor());
-                    texture.Apply();
-                    style.normal.background = texture;
-                }
-                if (backGroundStyle.Element("Image") != null)
-                {
-                    string imageName = backGroundStyle.Element("Image").Value;
-                    if (BackGroundTextureCollection.ContainsKey(imageName))
+                    GUIStyle style = new GUIStyle();
+                    if (backGroundItemStyle.Name.ToString() == "Color")
                     {
-                        style.normal.background = BackGroundTextureCollection[imageName];
+                        Texture2D texture = new Texture2D(1, 1);
+                        texture.SetPixel(1, 1, backGroundItemStyle.Value.GetColor());
+                        texture.Apply();
+                        style.normal.background = texture;
                     }
+                    else if (backGroundItemStyle.Name.ToString() == "Image")
+                    {
+                        string imageName = backGroundStyle.Element("Image").Value;
+                        if (BackGroundTextureCollection.ContainsKey(imageName))
+                        {
+                            style.normal.background = BackGroundTextureCollection[imageName];
+                        }
+                    }
+                    styleList.Add(style);
                 }
-                BackGroundStyleCollection.Add(backGroundStyle.Name.ToString(), style);
+                BackGroundStyleCollection.Add(backGroundStyle.Name.ToString(), styleList);
             }
-            #endregion
-
-            #region Icon
-            XElement IconElement = root.Element("Icon");
-            IconSizeX = int.Parse(IconElement.Element("IconSizeX").Value.ToString());
-            IconSizeY = int.Parse(IconElement.Element("IconSizeY").Value.ToString());
             #endregion
 
             #region Text
@@ -130,6 +148,9 @@ namespace ConsoleTiny
                 {
                     TextStyle.style.normal.textColor = textStyle.Element("Color").Value.GetColor();
                 }
+
+                TextStyle.style.fixedHeight = ListLineHeight - 10;
+                TextStyle.style.fontSize = FontSize;
 
                 if (textStyle.Element("Text") != null)
                 {

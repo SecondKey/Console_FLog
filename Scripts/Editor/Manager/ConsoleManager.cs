@@ -181,16 +181,16 @@ namespace ConsoleTiny
         public GUIStyle GetItemBackgroundStyle(ConsoleFlags logType, bool userLog, int num)
         {
             string text = ConsoleFlagsToString(logType, userLog);
-            if (NowLogStyle.BackGroundStyleCollection.ContainsKey(text))
+            if (NowLogStyle.BackGroundStyleCollection.ContainsKey(text) && NowLogStyle.BackGroundStyleCollection[text].Count > 0)
             {
-                return NowLogStyle.BackGroundStyleCollection[text];
+                return NowLogStyle.BackGroundStyleCollection[text][num % NowLogStyle.BackGroundStyleCollection[text].Count];
             }
             else if (userLog == true)
             {
                 text = ConsoleFlagsToString(logType, false);
-                if (NowLogStyle.BackGroundStyleCollection.ContainsKey(text))
+                if (NowLogStyle.BackGroundStyleCollection.ContainsKey(text) && NowLogStyle.BackGroundStyleCollection[text].Count > 0)
                 {
-                    return NowLogStyle.BackGroundStyleCollection[text];
+                    return NowLogStyle.BackGroundStyleCollection[text][num % NowLogStyle.BackGroundStyleCollection[text].Count];
                 }
             }
             GUIStyle style = num % 2 == 0 ? OddBackground : EvenBackground;
@@ -224,6 +224,15 @@ namespace ConsoleTiny
 
             t += text;
             return t;
+        }
+
+        public Rect GetTextRect(Rect origionRect)
+        {
+            return new Rect(
+                origionRect.x + NowLogStyle.TextOffectX,
+                origionRect.y + NowLogStyle.TextOffectY,
+                origionRect.width - NowLogStyle.TextOffectX,
+                origionRect.height - NowLogStyle.TextOffectY);
         }
         #endregion
 

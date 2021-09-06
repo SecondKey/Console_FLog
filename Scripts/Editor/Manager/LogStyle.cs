@@ -7,11 +7,17 @@ using System.Drawing;
 
 namespace ConsoleTiny
 {
-    public struct LogItemTextStyle
+    public struct LogItemStyle
     {
-        public GUIStyle style;
+        public List<GUIStyle> BackgroundStyleList;
+        public GUIStyle IconStyle;
+        public GUIStyle TextStyle;
         public string Text;
+    }
 
+    public struct LogGroup
+    {
+        public string Text;
     }
 
     public class LogStyle
@@ -42,18 +48,8 @@ namespace ConsoleTiny
         public Dictionary<string, Dictionary<string, Texture2D>> IconTextureCollection;
         #endregion
 
-
-
-        #region BackGround
-        public Dictionary<string, List<GUIStyle>> BackGroundStyleCollection;
-        #endregion
-
-
-        #region Text
-        public Dictionary<string, LogItemTextStyle> LogItemTextStyleCollection;
-        public Dictionary<string, string> LogGroupCollection;
-        #endregion 
-
+        public Dictionary<string, LogItemStyle> LogItemStyleCollection;
+        public Dictionary<string, LogGroup> LogGroupCollection;
 
 
         public LogStyle(string stylePath)
@@ -102,67 +98,71 @@ namespace ConsoleTiny
 
 
 
-            #region BackGround
-            BackGroundStyleCollection = new Dictionary<string, List<GUIStyle>>();
-            foreach (XElement backGroundStyle in root.Element("BackGround").Elements())
+            #region LogItemStyle
+            LogItemStyleCollection = new Dictionary<string, LogItemStyle>();
+            foreach (XElement ItemStyle in root.Element("ItemStyle").Elements())
             {
-                List<GUIStyle> styleList = new List<GUIStyle>();
-                foreach (XElement backGroundItemStyle in backGroundStyle.Elements())
+                LogItemStyle styleStruct = new LogItemStyle();
+
+                #region BackGround
+                styleStruct.BackgroundStyleList = new List<GUIStyle>();
+                if (ItemStyle.Element("BackGroundImage") != null)
                 {
-                    GUIStyle style = new GUIStyle();
-                    if (backGroundItemStyle.Name.ToString() == "Color")
+
+                }
+                else
+                {
+                    foreach (XElement backGroundItemStyle in ItemStyle.Element("BackGroundColor").Elements())
                     {
+                        GUIStyle style = new GUIStyle();
                         Texture2D texture = new Texture2D(1, 1);
                         texture.SetPixel(1, 1, backGroundItemStyle.Value.GetColor());
                         texture.Apply();
                         style.normal.background = texture;
+                        styleStruct.BackgroundStyleList.Add(style);
                     }
-                    else if (backGroundItemStyle.Name.ToString() == "Image")
-                    {
-                        string imageName = backGroundStyle.Element("Image").Value;
-                        if (BackGroundTextureCollection.ContainsKey(imageName))
-                        {
-                            style.normal.background = BackGroundTextureCollection[imageName];
-                        }
-                    }
-                    styleList.Add(style);
                 }
-                BackGroundStyleCollection.Add(backGroundStyle.Name.ToString(), styleList);
-            }
-            #endregion
+                #endregion
 
-            #region Text
-            LogItemTextStyleCollection = new Dictionary<string, LogItemTextStyle>();
-            foreach (XElement textStyle in root.Element("Text").Elements())
-            {
-                LogItemTextStyle TextStyle = new LogItemTextStyle();
-                if (textStyle.Element("Style") != null)
+                #region Text
+                if (ItemStyle.Element("TextStyle") != null)
                 {
-                    TextStyle.style = new GUIStyle(textStyle.Element("Style").Value);
+                    styleStruct.TextStyle = new GUIStyle(ItemStyle.Element("Style").Value);
                 }
                 else
                 {
-                    TextStyle.style = new GUIStyle("CN EntryInfo");
-                }
-                if (textStyle.Element("Color") != null)
-                {
-                    TextStyle.style.normal.textColor = textStyle.Element("Color").Value.GetColor();
+                    styleStruct.TextStyle = new GUIStyle("CN EntryInfo");
                 }
 
-                TextStyle.style.fixedHeight = ListLineHeight - 10;
-                TextStyle.style.fontSize = FontSize;
-
-                if (textStyle.Element("Text") != null)
+                if (ItemStyle.Element("TextColor") != null)
                 {
-                    TextStyle.Text = textStyle.Element("Text").Value;
+                    styleStruct.TextStyle.normal.textColor = ItemStyle.Element("TextColor").Value.GetColor();
                 }
-                LogItemTextStyleCollection.Add(textStyle.Name.ToString(), TextStyle);
+                else
+                {
+                    styleStruct.TextStyle.normal.textColor = new UnityEngine.Color(0, 0, 0, 1);
+                }
+
+                styleStruct.TextStyle.fixedHeight = ListLineHeight - 10;
+                styleStruct.TextStyle.fontSize = FontSize;
+
+                if (ItemStyle.Element("Text") != null)
+                {
+                    styleStruct.Text = ItemStyle.Element("Text").Value;
+                }
+                #endregion
+                LogItemStyleCollection.Add(ItemStyle.Name.ToString(), styleStruct);
             }
 
-            LogGroupCollection = new Dictionary<string, string>();
+
+            #endregion
+
+            #region Text
+
+            LogGroupCollection = new Dictionary<string, LogGroup>();
             foreach (XElement logGroup in root.Element("LogGroup").Elements())
             {
-                LogGroupCollection.Add(logGroup.Name.ToString(), logGroup.Value);
+                LogGroupCollection.Add(logGroup.Name.ToString(), new LogGroup() { Text = logGroup.Element("Text").Value  });
             }
             #endregion 
         }

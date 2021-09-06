@@ -11,7 +11,7 @@ namespace ConsoleTiny
 {
 
     /// <summary>
-    /// log入口包装
+    /// log条目包装
     /// </summary>
     public class EntryWrapped
     {
@@ -191,15 +191,15 @@ namespace ConsoleTiny
         private int[] m_TypeCounts = new[] { 0, 0, 0 };
         private int m_LastEntryCount = -1;
         /// <summary>
-        /// 被选择的入口的信息
+        /// 被选择的条目的信息
         /// </summary>
         private EntryInfo m_SelectedInfo;
         /// <summary>
-        /// 所有入口信息
+        /// 所有条目信息
         /// </summary>
         private readonly List<EntryInfo> m_EntryInfos = new List<EntryInfo>();
         /// <summary>
-        /// 被过滤后的入口信息
+        /// 被过滤后的条目信息
         /// </summary>
         private readonly List<EntryInfo> m_FilteredInfos = new List<EntryInfo>();
         private readonly CustomFiltersGroup m_CustomFilters = new CustomFiltersGroup();
@@ -280,10 +280,10 @@ namespace ConsoleTiny
         }
 
         /// <summary>
-        /// 设置选择的入口
+        /// 设置选择的条目
         /// </summary>
         /// <param name="row">选择的行</param>
-        /// <returns>入口实例的ID</returns>
+        /// <returns>条目实例的ID</returns>
         public int SetSelectedEntry(int row)
         {
             m_SelectedInfo = null;//清空原本的目标
@@ -297,13 +297,13 @@ namespace ConsoleTiny
         }
 
         /// <summary>
-        /// 检查某个入口是否被选中
+        /// 检查某个条目是否被选中
         /// </summary>
-        /// <param name="row">要判断的入口</param>
+        /// <param name="row">要判断的条目</param>
         /// <returns>是否被选中</returns>
         public bool IsEntrySelected(int row)
         {
-            if (row < 0 || row >= m_FilteredInfos.Count)//如果传入的入口不合法
+            if (row < 0 || row >= m_FilteredInfos.Count)//如果传入的条目不合法
             {
                 return false;//直接返回
             }
@@ -312,16 +312,16 @@ namespace ConsoleTiny
         }
 
         /// <summary>
-        /// 检查当前选中的入口是否显示
+        /// 检查当前选中的条目是否显示
         /// </summary>
         /// <returns>显示：true</returns>
         public bool IsSelectedEntryShow()
         {
-            return m_SelectedInfo != null && m_FilteredInfos.Contains(m_SelectedInfo);//如果 选中入口不为空且入口在被过滤后的列表中返回true
+            return m_SelectedInfo != null && m_FilteredInfos.Contains(m_SelectedInfo);//如果 选中条目不为空且条目在被过滤后的列表中返回true
         }
 
         /// <summary>
-        /// 获取当前选中入口的行数
+        /// 获取当前选中条目的行数
         /// </summary>
         /// <returns></returns>
         public int GetSelectedEntryIndex()
@@ -330,13 +330,13 @@ namespace ConsoleTiny
             {
                 for (int i = 0; i < m_FilteredInfos.Count; i++)//遍历所有的行
                 {
-                    if (m_FilteredInfos[i] == m_SelectedInfo)//如果目标行的入口和当前入口相等
+                    if (m_FilteredInfos[i] == m_SelectedInfo)//如果目标行的条目和当前条目相等
                     {
                         return i;//返回行号
                     }
                 }
             }
-            return -1;//如果当前入口为空或在所有行中没有当前入口返回-1
+            return -1;//如果当前条目为空或在所有行中没有当前条目返回-1
         }
 
         /// <summary>
@@ -356,7 +356,7 @@ namespace ConsoleTiny
         }
 
         /// <summary>
-        /// 更新入口列表
+        /// 更新条目列表
         /// </summary>
         public void UpdateEntries()
         {
@@ -407,24 +407,24 @@ namespace ConsoleTiny
         }
 
         /// <summary>
-        /// 清空所有入口
+        /// 清空所有条目
         /// </summary>
         private void ClearEntries()
         {
-            m_SelectedInfo = null;//清除入口选择信息
-            m_EntryInfos.Clear();//清空所有入口
-            m_FilteredInfos.Clear();//清空所有被过滤的入口
+            m_SelectedInfo = null;//清除条目选择信息
+            m_EntryInfos.Clear();//清空所有条目
+            m_FilteredInfos.Clear();//清空所有被过滤的条目
             m_LastEntryCount = -1;
             m_TypeCounts = new[] { 0, 0, 0 };
         }
 
         /// <summary>
-        /// 添加一个入口
+        /// 添加一个条目
         /// </summary>
         /// <param name="row">行数</param>
-        /// <param name="entry">入口</param>
+        /// <param name="entry">条目</param>
         /// <param name="text">文本</param>
-        /// <param name="entryCount">入口号</param>
+        /// <param name="entryCount">条目号</param>
         private void AddEntry(int row, LogEntry entry, string lines, int entryCount)
         {
             EntryInfo entryInfo = new EntryInfo
@@ -450,18 +450,36 @@ namespace ConsoleTiny
 
             if (entryInfo.text.Substring(0, 3) == "#!@")
             {
-                entryInfo.logGroup = entryInfo.text.Substring(3, entryInfo.text.IndexOf(";") - 3);
+                int index_1 = entryInfo.text.IndexOf(":");
+                int index_2 = entryInfo.text.IndexOf(";");
+
+                entryInfo.logGroup = entryInfo.text.Substring(3, index_1 - 3);
+                entryInfo.logType = entryInfo.text.Substring(index_1 + 1, index_2 - index_1 - 1);
                 int i = entryInfo.text.IndexOf(";") + 1;
                 int j = entryInfo.text.IndexOf("#!!") - i;
                 entryInfo.text = entryInfo.text.Substring(i, j);
             }
             else
             {
-                entryInfo.logGroup = "";
+                entryInfo.logGroup = "System";
+
+                switch (entryInfo.flags)
+                {
+                    case ConsoleFlags.LogLevelLog:
+                        entryInfo.logType = "Log";
+                        break;
+                    case ConsoleFlags.LogLevelWarning:
+                        entryInfo.logType = "Warning";
+                        break;
+                    case ConsoleFlags.LogLevelError:
+                        entryInfo.logType = "Error";
+                        break;
+
+                }
             }
             entryInfo.pure = GetPureLines(entryInfo.text, out entryInfo.HTMLTagPosInfos);
             entryInfo.lower = entryInfo.pure.ToLower();//将全部转换为小写
-            m_EntryInfos.Add(entryInfo);//将入口信息添加到入口列表中
+            m_EntryInfos.Add(entryInfo);//将条目信息添加到条目列表中
 
             bool hasSearchString = !string.IsNullOrEmpty(m_SearchString);
             string searchStringValue = null;
@@ -1014,11 +1032,11 @@ namespace ConsoleTiny
         /// <returns></returns>
         public bool StacktraceListView_IsExist()
         {
-            return m_SelectedInfo != null && m_SelectedInfo.stacktraceLineInfos != null;//如果选择的入口不为空且选择的入口的跟踪堆栈信息不为空：返回true
+            return m_SelectedInfo != null && m_SelectedInfo.stacktraceLineInfos != null;//如果选择的条目不为空且选择的条目的跟踪堆栈信息不为空：返回true
         }
 
         /// <summary>
-        /// 获取当前入口跟踪堆栈信息的数量
+        /// 获取当前条目跟踪堆栈信息的数量
         /// </summary>
         /// <returns>跟踪堆栈信息的数量</returns>
         public int StacktraceListView_GetCount()
@@ -1027,13 +1045,22 @@ namespace ConsoleTiny
         }
 
         /// <summary>
-        /// 获取目标行入口跟踪堆栈的文本信息
+        /// 获取目标行条目跟踪堆栈的文本信息
         /// </summary>
-        /// <param name="row">目标入口</param>
-        /// <returns>目标入口的文本信息</returns>
+        /// <param name="row">目标条目</param>
+        /// <returns>目标条目的文本信息</returns>
         public string StacktraceListView_GetLine(int row)
         {
-            return StacktraceListView_IsExist() ? m_SelectedInfo.stacktraceLineInfos[row].text : string.Empty;
+            if (StacktraceListView_IsExist())
+            {
+                StacktraceLineInfo info = m_SelectedInfo.stacktraceLineInfos[row];
+                if (info.filePath == null && info.text.Substring(0, 3) == "#!@")
+                {
+                    return ConsoleManager.Instence.GetItemText(m_SelectedInfo);
+                }
+                return m_SelectedInfo.stacktraceLineInfos[row].text;
+            }
+            return string.Empty;
         }
 
         /// <summary>
@@ -1044,7 +1071,7 @@ namespace ConsoleTiny
         /// <returns>使用tempContent包含 最长的跟踪堆栈文本 时，所使用的tempStyle的宽度</returns>
         public float StacktraceListView_GetMaxWidth(GUIContent tempContent, GUIStyle tempStyle)
         {
-            if (m_SelectedInfo == null || !IsSelectedEntryShow())//如果没有选择入口或选择的入口没有显示
+            if (m_SelectedInfo == null || !IsSelectedEntryShow())//如果没有选择条目或选择的条目没有显示
             {
                 return 1f;//直接返回
             }
@@ -1079,10 +1106,10 @@ namespace ConsoleTiny
         /// <summary>
         /// 解析跟踪堆栈信息
         /// </summary>
-        /// <param name="entryInfo">目标入口</param>
+        /// <param name="entryInfo">目标条目</param>
         private void StacktraceListView_Parse(EntryInfo entryInfo)
         {
-            var lines = entryInfo.entry.condition.Split(new char[] { '\n' }, StringSplitOptions.None);
+            var lines = entryInfo.lines.Split(new char[] { '\n' }, StringSplitOptions.None);
             entryInfo.stacktraceLineInfos = new List<StacktraceLineInfo>(lines.Length);
 
             string rootDirectory = System.IO.Path.Combine(Application.dataPath, "..");
@@ -1338,9 +1365,9 @@ namespace ConsoleTiny
         #endregion
 
         /// <summary>
-        /// 检查目标入口是否可以打开
+        /// 检查目标条目是否可以打开
         /// </summary>
-        /// <param name="stacktraceLineInfoIndex">目标入口行号</param>
+        /// <param name="stacktraceLineInfoIndex">目标条目行号</param>
         /// <returns>是否可以打开</returns>
         public bool StacktraceListView_CanOpen(int stacktraceLineInfoIndex)
         {
@@ -1356,9 +1383,9 @@ namespace ConsoleTiny
             return false;//不能打开
         }
         /// <summary>
-        /// 检查目标入口是否可以被包装
+        /// 检查目标条目是否可以被包装
         /// </summary>
-        /// <param name="stacktraceLineInfoIndex">目标入口行号</param>
+        /// <param name="stacktraceLineInfoIndex">目标条目行号</param>
         /// <returns>是否可以被包装</returns>
         public bool StacktraceListView_CanWrapper(int stacktraceLineInfoIndex)
         {
@@ -1374,9 +1401,9 @@ namespace ConsoleTiny
             return false;//不能包装
         }
         /// <summary>
-        /// 检查目标入口是否已经被包装
+        /// 检查目标条目是否已经被包装
         /// </summary>
-        /// <param name="stacktraceLineInfoIndex">目标入口行号</param>
+        /// <param name="stacktraceLineInfoIndex">目标条目行号</param>
         /// <returns>是否可以被包装</returns>
         public bool StacktraceListView_IsWrapper(int stacktraceLineInfoIndex)
         {
@@ -1387,7 +1414,7 @@ namespace ConsoleTiny
 
             if (stacktraceLineInfoIndex < m_SelectedInfo.stacktraceLineInfos.Count)//如果选择的目标是合法的
             {
-                return !string.IsNullOrEmpty(m_SelectedInfo.stacktraceLineInfos[stacktraceLineInfoIndex].wrapper) && m_WrapperInfos.Contains(m_SelectedInfo.stacktraceLineInfos[stacktraceLineInfoIndex].wrapper);//目标入口的包装不为空且包装列表中包含该目标入口
+                return !string.IsNullOrEmpty(m_SelectedInfo.stacktraceLineInfos[stacktraceLineInfoIndex].wrapper) && m_WrapperInfos.Contains(m_SelectedInfo.stacktraceLineInfos[stacktraceLineInfoIndex].wrapper);//目标条目的包装不为空且包装列表中包含该目标条目
             }
             return false;//没有包装
         }
@@ -1417,7 +1444,7 @@ namespace ConsoleTiny
         /// <summary>
         /// 打开跟踪堆栈文件
         /// </summary>
-        /// <param name="userData">目标入口行号</param>
+        /// <param name="userData">目标条目行号</param>
         public void StacktraceListView_Open(object userData)
         {
             if (!StacktraceListView_IsExist())//如果没有跟踪堆栈
@@ -1459,7 +1486,7 @@ namespace ConsoleTiny
                 StringBuilder sb = new StringBuilder();//创建StringBuilder
                 foreach (var info in m_WrapperInfos)//遍历所有包装信息
                 {
-                    if (!string.IsNullOrEmpty(info))//将所有的入口清空
+                    if (!string.IsNullOrEmpty(info))//将所有的条目清空
                     {
                         sb.Append(info);//打包包装信息
                         sb.Append('\n');//用换行分割
@@ -1469,7 +1496,7 @@ namespace ConsoleTiny
             }
         }
         /// <summary>
-        /// 复制目标入口
+        /// 复制目标条目
         /// </summary>
         /// <param name="userData"></param>
         public void StacktraceListView_Copy(object userData)

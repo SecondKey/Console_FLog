@@ -81,8 +81,39 @@ namespace ConsoleTiny
             }
             styleLoadAlready = true;
         }
-        #endregion
 
+        private void ChangeConsoleStyle(string consoleStyleName)
+        {
+            if (NowConsoleStyle != null && NowConsoleStyle.StyleName == consoleStyleName)
+                return;
+            if (ConsoleStyleList.ContainsKey(consoleStyleName))
+            {
+                NowConsoleStyle = ConsoleStyleList[consoleStyleName];
+            }
+            else
+            {
+                Debug.Log("没有指定的Console样式");
+            }
+        }
+
+        public void ChangeLogStyle(string logStyleName)
+        {
+            if (NowLogStyle != null && NowLogStyle.StyleName == logStyleName)
+                return;
+
+            if (LogStyleList.ContainsKey(logStyleName))
+            {
+                NowLogStyle = LogStyleList[logStyleName];
+                ChangeConsoleStyle(NowLogStyle.TargetConsoleStyleName);
+                ConsoleWindow.instence.UpdateListView();
+            }
+            else
+            {
+                Debug.Log("没有指定的Log样式");
+            }
+        }
+
+        #endregion
 
         public void LoadConfig()
         {
@@ -130,36 +161,6 @@ namespace ConsoleTiny
 
         }
 
-        private void ChangeConsoleStyle(string consoleStyleName)
-        {
-            if (NowConsoleStyle != null && NowConsoleStyle.StyleName == consoleStyleName)
-                return;
-            if (ConsoleStyleList.ContainsKey(consoleStyleName))
-            {
-                NowConsoleStyle = ConsoleStyleList[consoleStyleName];
-            }
-            else
-            {
-                Debug.Log("没有指定的Console样式");
-            }
-        }
-
-        public void ChangeLogStyle(string logStyleName)
-        {
-            if (NowLogStyle != null && NowLogStyle.StyleName == logStyleName)
-                return;
-
-            if (LogStyleList.ContainsKey(logStyleName))
-            {
-                NowLogStyle = LogStyleList[logStyleName];
-                ChangeConsoleStyle(NowLogStyle.TargetConsoleStyleName);
-                ConsoleWindow.instence.UpdateListView();
-            }
-            else
-            {
-                Debug.Log("没有指定的Log样式");
-            }
-        }
 
 
         #region Resources/Style
@@ -178,51 +179,49 @@ namespace ConsoleTiny
             return null;
         }
 
-        public GUIStyle GetItemBackgroundStyle(ConsoleFlags logType, bool userLog, int num)
+        //public GUIStyle GetItemBackgroundStyle(ConsoleFlags logType, bool userLog, int num)
+        internal GUIStyle GetItemBackgroundStyle(EntryInfo info, int num)
         {
-            string text = ConsoleFlagsToString(logType, userLog);
-            if (NowLogStyle.BackGroundStyleCollection.ContainsKey(text) && NowLogStyle.BackGroundStyleCollection[text].Count > 0)
+            if (!string.IsNullOrEmpty(info.logType) && NowLogStyle.LogItemStyleCollection.ContainsKey(info.logType))
             {
-                return NowLogStyle.BackGroundStyleCollection[text][num % NowLogStyle.BackGroundStyleCollection[text].Count];
-            }
-            else if (userLog == true)
-            {
-                text = ConsoleFlagsToString(logType, false);
-                if (NowLogStyle.BackGroundStyleCollection.ContainsKey(text) && NowLogStyle.BackGroundStyleCollection[text].Count > 0)
+                int count = NowLogStyle.LogItemStyleCollection[info.logType].BackgroundStyleList.Count;
+                if (count > 0)
                 {
-                    return NowLogStyle.BackGroundStyleCollection[text][num % NowLogStyle.BackGroundStyleCollection[text].Count];
+                    return NowLogStyle.LogItemStyleCollection[info.logType].BackgroundStyleList[num % count];
                 }
             }
             GUIStyle style = num % 2 == 0 ? OddBackground : EvenBackground;
             return style;
         }
 
-        public GUIStyle GetItemTextStyle(ConsoleFlags logType, bool userLog)
+        internal GUIStyle GetItemTextStyle(EntryInfo info)
         {
-            string consoleFlags = ConsoleFlagsToString(logType, userLog);
-            if (!string.IsNullOrEmpty(consoleFlags) && NowLogStyle.LogItemTextStyleCollection.ContainsKey(consoleFlags))
+            if (!string.IsNullOrEmpty(info.logType) && NowLogStyle.LogItemStyleCollection.ContainsKey(info.logType))
             {
-                return NowLogStyle.LogItemTextStyleCollection[consoleFlags].style;
+                return NowLogStyle.LogItemStyleCollection[info.logType].TextStyle;
             }
             return "CN EntryInfo";
         }
 
-        public string GetItemText(string text, string logGroup, ConsoleFlags logType)
+
+        //public string GetItemText(string text, string logGroup, ConsoleFlags logType)
+        internal string GetItemText(EntryInfo info)
         {
             string t = "";
-            string consoleFlags = ConsoleFlagsToString(logType, !string.IsNullOrEmpty(logGroup));
-            if (!string.IsNullOrEmpty(consoleFlags) && NowLogStyle.LogItemTextStyleCollection.ContainsKey(consoleFlags))
+            if (!string.IsNullOrEmpty(info.logGroup) && NowLogStyle.LogGroupCollection.ContainsKey(info.logGroup))
             {
-                t += NowLogStyle.LogItemTextStyleCollection[consoleFlags].Text;
+                t += NowLogStyle.LogGroupCollection[info.logGroup].Text;
+            }
+            if (!string.IsNullOrEmpty(info.logType) && NowLogStyle.LogItemStyleCollection.ContainsKey(info.logType))
+            {
+                t += NowLogStyle.LogItemStyleCollection[info.logType].Text;
+            }
+            if (t != "")
+            {
+                t = "<size=20>" + t + "</size>";
                 t += "\n";
             }
-            if (!string.IsNullOrEmpty(logGroup) && NowLogStyle.LogGroupCollection.ContainsKey(logGroup))
-            {
-                t += NowLogStyle.LogGroupCollection[logGroup];
-                t += "\n";
-            }
-
-            t += text;
+            t += info.text;
             return t;
         }
 
@@ -235,33 +234,5 @@ namespace ConsoleTiny
                 origionRect.height - NowLogStyle.TextOffectY);
         }
         #endregion
-
-
-        public string ConsoleFlagsToString(ConsoleFlags flags, bool userLog)
-        {
-            string text;
-            switch (flags)
-            {
-                case ConsoleFlags.LogLevelLog:
-                    text = "Log";
-                    break;
-                case ConsoleFlags.LogLevelWarning:
-                    text = "Warning";
-                    break;
-                case ConsoleFlags.LogLevelError:
-                    text = "Error";
-                    break;
-
-                default:
-                    return "";
-            }
-            if (userLog)
-            {
-                text = "User" + text;
-            }
-            return text;
-        }
-
-
     }
 }

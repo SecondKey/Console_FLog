@@ -18,7 +18,7 @@
     <Text>
       <TextOffectX>100</TextOffectX>
       <TextOffectY>5</TextOffectY>
-      
+
       <FontSize>13</FontSize>
     </Text>
   </Info>
@@ -46,75 +46,83 @@
   </Image>
 
 
-  <BackGround>
-    <UserLog>
-      <Color>0.2,0.2,0.2,1</Color>
-      <Color>0.3,0.3,0.3,1</Color>
-    </UserLog>
-    <UserWarning>
-      <Color>0.8,0.8,0.2,0.5</Color>
-      <Color>0.8,0.8,0.2,0.5</Color>
-    </UserWarning>
-    <UserError>
-      <Color>0.8,0.8,0.2,0.5</Color>
-      <Color>0.8,0.8,0.2,0.5</Color>
-    </UserError>
+  <ItemStyle>
     <Log>
-      <Color>0.2,0.2,0.2,1</Color>
-      <Color>0.3,0.3,0.3,1</Color>
+      <BackGroundColor>
+        <Color>0.2,0.2,0.2,1</Color>
+        <Color>0.3,0.3,0.3,1</Color>
+      </BackGroundColor>
+      <Icon></Icon>
+      <Text>日志</Text>
+      <TextColor>0.8,0.8,0.8,0.8</TextColor>
     </Log>
-    <Warning>
-      <Color>0.8,0.8,0.2,0.5</Color>
-      <Color>0.8,0.8,0.2,0.5</Color>
-    </Warning>
-    <Error>
-      <Color>0.8,0.8,0.2,0.5</Color>
-      <Color>0.8,0.8,0.2,0.5</Color>
-    </Error>
-  </BackGround>
+    <MainParameter>
+      <BackGroundColor>
+        <Color>0.2,0.2,0.2,1</Color>
+        <Color>0.3,0.3,0.3,1</Color>
+      </BackGroundColor>
+      <Icon></Icon>
+      <Text>关键参数</Text>
+      <TextColor>0.8,0.8,0.8,0.8</TextColor>
+    </MainParameter>
+    <Examine>
+      <BackGroundColor>
+        <Color>0.2,0.2,0.2,1</Color>
+        <Color>0.3,0.3,0.3,1</Color>
+      </BackGroundColor>
+      <Icon></Icon>
+      <Text>需要检查</Text>
+      <TextColor>0.8,0.8,0.8,0.8</TextColor>
+    </Examine>
 
-  <Icon>
-    <UserLog></UserLog>
-    <UserWarning></UserWarning>
-    <UserError></UserError>
-    <Log></Log>
-    <Warning></Warning>
-    <Error></Error>
-  </Icon>
-
-  <Text>
-    <UserLog>
-      <Text>用户日志:</Text>
-      <Color>0.7,0.7,0.7,1</Color>
-    </UserLog>
-    <UserWarning>
-      <Text>用户警告:</Text>
-      <Color>0,0,0,0.5</Color>
-    </UserWarning>
-    <UserError>
-      <Text>用户错误:</Text>
-      <Color>0,0,0,0.5</Color>
-    </UserError>
-    <Log>
-      <Text>系统日志:</Text>
-      <Color>0.8,0.8,0.8,0.8</Color>
-    </Log>
     <Warning>
-      <Text>系统警告:</Text>
-      <Color>0,0,0,0.5</Color>
+      <BackGroundColor>
+        <Color>0.8,0.8,0.2,0.5</Color>
+        <Color>0.8,0.8,0.2,0.5</Color>
+      </BackGroundColor>
+      <Icon></Icon>
+      <Text>警告</Text>
+      <TextColor>0.8,0.8,0.8,0.8</TextColor>
     </Warning>
+
     <Error>
-      <Text>系统错误:</Text>
-      <Color>0,0,0,0.5</Color>
+      <BackGroundColor>
+        <Color>0.8,0.8,0.2,0.5</Color>
+        <Color>0.8,0.8,0.2,0.5</Color>
+      </BackGroundColor>
+      <Icon></Icon>
+      <Text>错误</Text>
+      <TextColor>0,0,0,0.5</TextColor>
     </Error>
-  </Text>
+    <Assert>
+      <BackGroundColor>
+        <Color>0.8,0.8,0.2,0.5</Color>
+        <Color>0.8,0.8,0.2,0.5</Color>
+      </BackGroundColor>
+      <Icon></Icon>
+      <Text>断言</Text>
+      <TextColor>0,0,0,0.5</TextColor>
+    </Assert>
+    <Disastrous>
+      <BackGroundColor>
+        <Color>0.8,0.8,0.2,0.5</Color>
+        <Color>0.8,0.8,0.2,0.5</Color>
+      </BackGroundColor>
+      <Icon></Icon>
+      <Text>灾难性问题</Text>
+      <TextColor>0,0,0,0.5</TextColor>
+    </Disastrous>
+  </ItemStyle>
 
   <LogGroup>
-    <TMP>临时输出：</TMP>
-    <IOC>依赖注入输出：</IOC>
+    <TMP>
+      <Text>临时的</Text>
+    </TMP>
+    <System>
+      <Text>系统</Text>
+    </System>
+    <IOC>
+      <Text>依赖注入</Text>
+    </IOC>
   </LogGroup>
-
-  <AdditionalTexture>
-
-  </AdditionalTexture>
 </LogStyle>

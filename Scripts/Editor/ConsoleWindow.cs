@@ -128,7 +128,7 @@ namespace ConsoleTiny
                 UpdateListView();
             }
             Event e = Event.current;//获取当前正在处理的事件
-            EntryWrapped.Instence.UpdateEntries();//更新所有入口
+            EntryWrapped.Instence.UpdateEntries();//更新所有条目
 
             #region 复制粘贴选中的项
             if ((e.type == EventType.ValidateCommand || e.type == EventType.ExecuteCommand) && e.commandName == "Copy")
@@ -145,7 +145,7 @@ namespace ConsoleTiny
             #region Clear按钮
             if (GUILayout.Button(ClearLabel, MiniButton))//创建Clear按钮，判断该按钮是否被按下
             {
-                LogEntries.Clear();//清空所有入口
+                LogEntries.Clear();//清空所有条目
                 GUIUtility.keyboardControl = 0;//清空键盘控制
             }
             #endregion  
@@ -283,12 +283,12 @@ namespace ConsoleTiny
                     }
                     else if (e.type == EventType.Repaint)//如果目标事件是每帧发送的刷新消息
                     {
-                        var parameters = EntryWrapped.Instence.GetEntryLinesAndFlagAndCount(el.row);//获取入口的数据1：文本 2：类型 3：入口数量 4：选择的条目 5：多选结束条目
+                        var parameters = EntryWrapped.Instence.GetEntryLinesAndFlagAndCount(el.row);//获取条目的数据1：文本 2：类型 3：条目数量 4：选择的条目 5：多选结束条目
                         bool isSelected = EntryWrapped.Instence.IsEntrySelected(el.row);//条目是否被选中
 
                         #region 绘制条目
                         #region 背景
-                        GUIStyle s = ConsoleManager.Instence.GetItemBackgroundStyle(parameters.flags, !string.IsNullOrEmpty(parameters.logGroup), el.row);//交替背景颜色
+                        GUIStyle s = ConsoleManager.Instence.GetItemBackgroundStyle(parameters, el.row);//交替背景颜色
                         s.Draw(el.position, true, false, isSelected, false);//绘制背景
                         #endregion
                         #region 图标
@@ -301,8 +301,8 @@ namespace ConsoleTiny
                         //iconStyle.Draw(el.position, false, false, isSelected, false);//绘制图标
                         #endregion
                         #region 文本
-                        tempContent = new GUIContent(ConsoleManager.Instence.GetItemText(parameters.text, parameters.logGroup, parameters.flags));
-                        GUIStyle errorModeStyle = ConsoleManager.Instence.GetItemTextStyle(parameters.flags, !string.IsNullOrEmpty(parameters.logGroup));
+                        tempContent = new GUIContent(ConsoleManager.Instence.GetItemText(parameters));
+                        GUIStyle errorModeStyle = ConsoleManager.Instence.GetItemTextStyle(parameters);
                         errorModeStyle.fixedHeight = 100;
                         if (string.IsNullOrEmpty(EntryWrapped.Instence.searchString) || parameters.searchIndex == -1 || parameters.searchIndex >= parameters.text.Length)
                         {
@@ -352,12 +352,12 @@ namespace ConsoleTiny
                 {
                     if (logListView.selectionChanged)//如果选中项发生了变化
                     {
-                        SetActiveEntry(logListView.row);//设置选中入口
+                        SetActiveEntry(logListView.row);//设置选中条目
                     }
                 }
                 #endregion
 
-                #region 使用回车键打开入口
+                #region 使用回车键打开条目
                 if ((GUIUtility.keyboardControl == logListView.ID) && (e.type == EventType.KeyDown) && (e.keyCode == KeyCode.Return) && (logListView.row != 0))
                 {
                     selectedRow = logListView.row;
@@ -520,7 +520,7 @@ namespace ConsoleTiny
         private int m_ActiveInstanceID = 0;
 
         /// <summary>
-        /// 设置点击入口，如果该输出包含游戏物体信息，选中输出目标消息的游戏物体，并显示选中特效
+        /// 设置点击条目，如果该输出包含游戏物体信息，选中输出目标消息的游戏物体，并显示选中特效
         /// 如果反复选择同一个输出，或目标游戏物体相同，则不会重复选择
         /// </summary>
         /// <param name="selectedIndex">选中的信息的id</param>
@@ -652,11 +652,11 @@ namespace ConsoleTiny
                 var stacktraceLineInfoIndex = m_StacktraceLineContextClickRow;//保存选中行信息
                 m_StacktraceLineContextClickRow = -1;//清除选中信息
                 GenericMenu menu = new GenericMenu();//创建一个邮件菜单
-                if (EntryWrapped.Instence.StacktraceListView_CanOpen(stacktraceLineInfoIndex))//如果入口可以打开
+                if (EntryWrapped.Instence.StacktraceListView_CanOpen(stacktraceLineInfoIndex))//如果条目可以打开
                 {
                     menu.AddItem(new GUIContent("Open"), false, EntryWrapped.Instence.StacktraceListView_Open, stacktraceLineInfoIndex);//添加一个 打开 按钮
                     menu.AddSeparator("");//创建分隔符
-                    if (EntryWrapped.Instence.StacktraceListView_CanWrapper(stacktraceLineInfoIndex))//如果入口可以被包装
+                    if (EntryWrapped.Instence.StacktraceListView_CanWrapper(stacktraceLineInfoIndex))//如果条目可以被包装
                     {
                         menu.AddItem(new GUIContent("Wrapper"), EntryWrapped.Instence.StacktraceListView_IsWrapper(stacktraceLineInfoIndex), EntryWrapped.Instence.StacktraceListView_Wrapper, stacktraceLineInfoIndex);//添加包装按钮
                     }

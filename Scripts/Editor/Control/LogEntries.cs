@@ -8,12 +8,12 @@ using UnityEngine;
 namespace ConsoleTiny
 {
     /// <summary>
-    /// 跟踪堆栈入口信息
+    /// 跟踪堆栈条目信息
     /// </summary>
     internal class EntryInfo
     {
         /// <summary>
-        /// 当前入口的行数
+        /// 当前条目的行数
         /// </summary>
         public int row;
         /// <summary>
@@ -27,10 +27,9 @@ namespace ConsoleTiny
         /// </summary>
         public string lines;
         /// <summary>
-        /// 这里是在信息列表中显示的文本
+        /// 用户输出的文本
         /// </summary>
         public string text;
-
         /// <summary>
         /// 移除了标签(HTML标签)后的文本
         /// </summary>
@@ -39,7 +38,17 @@ namespace ConsoleTiny
         /// pure的小写格式
         /// </summary>
         public string lower;
-        #endregion 
+        #endregion
+
+        #region Log
+        /// <summary>
+        /// 输出大类型
+        /// </summary>
+        public ConsoleFlags flags;
+        /// <summary>
+        /// 具体输出类型
+        /// </summary>
+        public string logType;
         /// <summary>
         /// 文本的起始标签
         /// </summary>
@@ -48,13 +57,16 @@ namespace ConsoleTiny
         /// 显示在信息列表中的行数
         /// </summary>
         public int numberLines;
+        #endregion 
 
 
 
         /// <summary>
-        /// 所有该类入口数（折叠时有效）
+        /// 所有该类条目数（折叠时有效）
         /// </summary>
         public int entryCount;
+
+
         /// <summary>
         /// 选择开始的index
         /// </summary>
@@ -64,11 +76,7 @@ namespace ConsoleTiny
         /// </summary>
         public int searchEndIndex;
         /// <summary>
-        /// ConsoleFlags
-        /// </summary>
-        public ConsoleFlags flags;
-        /// <summary>
-        /// 具体入口
+        /// 具体条目
         /// </summary>
         public LogEntry entry;
         /// <summary>

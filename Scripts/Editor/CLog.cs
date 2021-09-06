@@ -12,6 +12,15 @@ namespace ConsoleTiny
             Log(logText, "TMP");
         }
 
+        public static void LogMainParameter(string logText)
+        {
+            LogMainParameter(logText, "TMP");
+        }
+        public static void LogExamine(string logText)
+        {
+            LogExamine(logText, "TMP");
+        }
+
         public static void LogWarning(string logText)
         {
             LogWarning(logText, "TMP");
@@ -21,23 +30,47 @@ namespace ConsoleTiny
         {
             LogError(logText, "TMP");
         }
+        public static void LogAssert(string logText)
+        {
+            LogAssert(logText, "TMP");
+        }
+        public static void LogDisastrous(string logText)
+        {
+            LogDisastrous(logText, "TMP");
+        }
         #endregion
 
 
         #region Private
         static void Log(string logText, string logType)
         {
-            Debug.Log("#!@" + logType + ";" + logText + "#!!");
+            Debug.Log("#!@" + logType + ":Log" + ";" + logText + "#!!");
+        }
+        static void LogMainParameter(string logText, string logType)
+        {
+            Debug.Log("#!@" + logType + ":MainParameter" + ";" + logText + "#!!");
+        }
+        static void LogExamine(string logText, string logType)
+        {
+            Debug.Log("#!@" + logType + ":Examine" + ";" + logText + "#!!");
         }
 
         static void LogWarning(string logText, string logType)
         {
-            Debug.LogWarning("#!@" + logType + ";" + logText + "#!!");
+            Debug.LogWarning("#!@" + logType + ":Warning" + ";" + logText + "#!!");
         }
 
         static void LogError(string logText, string logType)
         {
-            Debug.LogError("#!@" + logType + ";" + logText + "#!!");
+            Debug.LogError("#!@" + logType + ":Error" + ";" + logText + "#!!");
+        }
+        static void LogAssert(string logText, string logType)
+        {
+            Debug.LogError("#!@" + logType + ":Assert" + ";" + logText + "#!!");
+        }
+        static void LogDisastrous(string logText, string logType)
+        {
+            Debug.LogError("#!@" + logType + ":Disastrous" + ";" + logText + "#!!");
         }
         #endregion 
     }

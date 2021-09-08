@@ -41,18 +41,11 @@ namespace ConsoleTiny
         #endregion 
 
         #region Icon
+        public static int IconOffectX { get { return ConsoleManager.Instence.NowLogStyle.IconOffectX; } }
+        public static int IconOffectY { get { return ConsoleManager.Instence.NowLogStyle.IconOffectY; } }
         public static int IconSizeX { get { return ConsoleManager.Instence.NowLogStyle.IconSizeX; } }
         public static int IconSizeY { get { return ConsoleManager.Instence.NowLogStyle.IconSizeY; } }
         #endregion 
-
-
-
-
-
-
-
-
-
 
 
 

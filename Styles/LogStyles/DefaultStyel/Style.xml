@@ -9,22 +9,28 @@
     </List>
 
     <Icon>
-      <IconPosX>11</IconPosX>
-      <IconPosY>11</IconPosY>
+      <IconOffectX>12</IconOffectX>
+      <IconOffectY>12</IconOffectY>
 
-      <IconSizeX>20</IconSizeX>
-      <IconSizeY>20</IconSizeY>
+      <IconSizeX>90</IconSizeX>
+      <IconSizeY>90</IconSizeY>
     </Icon>
     <Text>
-      <TextOffectX>100</TextOffectX>
+      <TextOffectX>80</TextOffectX>
       <TextOffectY>5</TextOffectY>
 
       <FontSize>13</FontSize>
+
+      <MaxLine>3</MaxLine>
     </Text>
   </Info>
 
   <Image>
     <Icon>
+      <CommonImage>123.jpg</CommonImage>
+
+
+
       <!--<iconInfo></iconInfo>
     <iconWarn></iconWarn>
     <iconError></iconError>
@@ -52,7 +58,9 @@
         <Color>0.2,0.2,0.2,1</Color>
         <Color>0.3,0.3,0.3,1</Color>
       </BackGroundColor>
-      <Icon></Icon>
+      <Icon>
+        <Icon>CommonImage</Icon>
+      </Icon>
       <Text>日志</Text>
       <TextColor>0.8,0.8,0.8,0.8</TextColor>
     </Log>
@@ -87,12 +95,12 @@
 
     <Error>
       <BackGroundColor>
-        <Color>0.8,0.8,0.2,0.5</Color>
-        <Color>0.8,0.8,0.2,0.5</Color>
+        <Color>0.8,0.1,0.1,1</Color>
+        <Color>0.7,0.2,0.2,1</Color>
       </BackGroundColor>
       <Icon></Icon>
       <Text>错误</Text>
-      <TextColor>0,0,0,0.5</TextColor>
+      <TextColor>1,1,1,1</TextColor>
     </Error>
     <Assert>
       <BackGroundColor>

@@ -73,8 +73,8 @@ namespace ConsoleTiny
         /// </summary>
         int ms_LVHeight = 0;
 
+        SplitterState spl = new SplitterState(new float[] { 70, 30 }, new int[] { 32, 32 }, null);
         IConnectionState m_ConsoleAttachToPlayerState;
-
         #endregion
 
 
@@ -85,8 +85,6 @@ namespace ConsoleTiny
             titleContent.text = "Console T";//设置窗口名
 
             Application.logMessageReceived += DoLogChanged;//添加打印输出的回调函数
-
-
 
             if (m_ConsoleAttachToPlayerState == null)//如果未建立与玩家连接
                 m_ConsoleAttachToPlayerState = new ConsoleAttachToPlayerState(this);//建立与玩家连接
@@ -232,11 +230,14 @@ namespace ConsoleTiny
             int warningCount = 0;//错误数量
             int logCount = 0;//日志数量
             EntryWrapped.Instence.GetCountsByType(ref errorCount, ref warningCount, ref logCount);//获取三种输出的数量
-            EditorGUI.BeginChangeCheck();//检查是否有代码被修改
-
+            EditorGUI.BeginChangeCheck();
             bool setLogFlag = GUILayout.Toggle(EntryWrapped.Instence.HasFlag((int)ConsoleFlags.LogLevelLog), new GUIContent((logCount <= 999 ? logCount.ToString() : "999+"), logCount > 0 ? iconInfoSmall : iconInfoMono), MiniButton);//日志按钮
             bool setWarningFlag = GUILayout.Toggle(EntryWrapped.Instence.HasFlag((int)ConsoleFlags.LogLevelWarning), new GUIContent((warningCount <= 999 ? warningCount.ToString() : "999+"), warningCount > 0 ? iconWarnSmall : iconWarnMono), MiniButton);//警告按钮
             bool setErrorFlag = GUILayout.Toggle(EntryWrapped.Instence.HasFlag((int)ConsoleFlags.LogLevelError), new GUIContent((errorCount <= 999 ? errorCount.ToString() : "999+"), errorCount > 0 ? iconErrorSmall : iconErrorMono), MiniButton);//报错按钮
+            if (EditorGUI.EndChangeCheck())
+            {
+
+            }
 
             EntryWrapped.Instence.SetFlag((int)ConsoleFlags.LogLevelLog, setLogFlag);//设置日志是否输出
             EntryWrapped.Instence.SetFlag((int)ConsoleFlags.LogLevelWarning, setWarningFlag);//设置警告是否输出
@@ -259,7 +260,7 @@ namespace ConsoleTiny
             #endregion
 
             #region Vertical
-            SplitterGUILayout.BeginVerticalSplit(new SplitterState(new float[] { 70, 30 }, new int[] { 32, 32 }, null));//开启纵向布局
+            SplitterGUILayout.BeginVerticalSplit(spl);//开启纵向布局
             //EditorGUIUtility.SetIconSize(new Vector2(IconSizeX, IconSizeY));//设置图标
             int id = GUIUtility.GetControlID(0);
             int rowDoubleClicked = -1;//双击行号
@@ -292,13 +293,14 @@ namespace ConsoleTiny
                         s.Draw(el.position, true, false, isSelected, false);//绘制背景
                         #endregion
                         #region 图标
-                        //Rect iconRect = el.position;
-                        //iconRect.size = new Vector2(100, 100);
-                        //GUIStyle style = "Icon.Clip";
-                        //GUI.Label(iconRect, ConsoleManager.Instence.GetTexture(""), style);
+                        Rect iconRect = new Rect(
+                            el.position.x + IconOffectX,
+                            el.position.y + IconOffectY,
+                            IconSizeX,
+                            IconSizeY);
 
-                        //GUIStyle iconStyle = GetStyleForErrorMode(flag, true, true);/ /设置条目图标样式
-                        //iconStyle.Draw(el.position, false, false, isSelected, false);//绘制图标
+                        GUIStyle iconStyle = new GUIStyle();
+                        iconStyle.Draw(iconRect, ConsoleManager.Instence.GetItemIconContent(parameters), GUIUtility.keyboardControl);//绘制图标
                         #endregion
                         #region 文本
                         tempContent = new GUIContent(ConsoleManager.Instence.GetItemText(parameters));
@@ -672,10 +674,10 @@ namespace ConsoleTiny
             int selectedRow = -1;//选择的行
             bool openSelectedItem = false;//是否要打开选中项
 
+            messageListView.totalRows = EntryWrapped.Instence.StacktraceListView_GetCount();//获取跟踪堆栈总行数
             GUILayout.BeginHorizontal(Box);//开启一个纵向布局
 
             #region ListView Layout
-            messageListView.totalRows = EntryWrapped.Instence.StacktraceListView_GetCount();//获取跟踪堆栈总行数
             messageListView.scrollPos = EditorGUILayout.BeginScrollView(messageListView.scrollPos);//开启一个自动滚动的试图
             ListViewGUI.ilvState.beganHorizontal = true;
             messageListView.draggedFrom = -1;

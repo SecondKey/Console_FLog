@@ -17,6 +17,8 @@ namespace ConsoleTiny
             LoadStyle();
             LoadConfig();
         }
+
+
         public static ConsoleManager Instence
         {
             get
@@ -32,6 +34,10 @@ namespace ConsoleTiny
                 if (!instence.optionLoadAlready)
                 {
                     instence.LoadOptions();
+                }
+                if (instence.NowLogStyle.check == null)
+                {
+                    instence.NowLogStyle.LoadStyle();
                 }
                 return instence;
             }
@@ -51,7 +57,6 @@ namespace ConsoleTiny
             XElement root = optionXml.Root;
 
             ChangeLogStyle(root.Element("Style").Element("NowChoiseLogStyle").Value);
-
         }
         #endregion
 
@@ -192,6 +197,19 @@ namespace ConsoleTiny
             }
             GUIStyle style = num % 2 == 0 ? OddBackground : EvenBackground;
             return style;
+        }
+
+        internal GUIContent GetItemIconContent(EntryInfo info)
+        {
+            if (!string.IsNullOrEmpty(info.logType) && NowLogStyle.LogItemStyleCollection.ContainsKey(info.logType))
+            {
+                List<GUIContent> contentList = NowLogStyle.LogItemStyleCollection[info.logType].IconContentList;
+                if (contentList.Count > 0)
+                {
+                    return contentList[Random.Range(0, contentList.Count)];
+                }
+            }
+            return new GUIContent();
         }
 
         internal GUIStyle GetItemTextStyle(EntryInfo info)

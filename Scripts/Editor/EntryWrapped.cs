@@ -361,6 +361,7 @@ namespace ConsoleTiny
         public void UpdateEntries()
         {
             CheckInit();//检查是否更新
+
             int flags = LogEntries.consoleFlags;//获取所有的
             LogEntries.SetConsoleFlag((int)ConsoleFlags.LogLevelLog, true);
             LogEntries.SetConsoleFlag((int)ConsoleFlags.LogLevelWarning, true);
@@ -370,6 +371,7 @@ namespace ConsoleTiny
             if (count == m_LastEntryCount)
             {
                 LogEntries.consoleFlags = flags;
+                CheckSearchStringChanged();
                 return;
             }
 

@@ -33,11 +33,12 @@ namespace ConsoleTiny
         public int ListLineHeight { get; private set; }
         #endregion
 
-        #region TextPositionOffect
+        #region Text
         public int TextOffectX { get; private set; }
         public int TextOffectY { get; private set; }
 
         public int FontSize { get; private set; }
+        public int MaxLine { get; private set; }
         #endregion 
 
         #region Icon
@@ -59,7 +60,9 @@ namespace ConsoleTiny
 
         public void LoadStyle()
         {
-            check = new Texture2D(0,0);
+            check = new Texture2D(1, 1);
+            check.SetPixel(1, 1, new UnityEngine.Color(0.2f, 0.2f, 0.7f, 1f));
+            check.Apply();
             XElement root = XDocument.Load(stylePath + "/Style.xml").Root;
 
             #region Info
@@ -84,6 +87,7 @@ namespace ConsoleTiny
             TextOffectY = int.Parse(TextElement.Element("TextOffectY").Value.ToString());
 
             FontSize = int.Parse(TextElement.Element("FontSize").Value.ToString());
+            MaxLine = int.Parse(TextElement.Element("MaxLine").Value.ToString());
             #endregion
 
             #region Texture
@@ -124,6 +128,7 @@ namespace ConsoleTiny
                         texture.SetPixel(1, 1, backGroundItemStyle.Value.GetColor());
                         texture.Apply();
                         style.normal.background = texture;
+                        style.onNormal.background = check;
                         styleStruct.BackgroundStyleList.Add(style);
                     }
                 }

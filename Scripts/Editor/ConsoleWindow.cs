@@ -238,12 +238,10 @@ namespace ConsoleTiny
             {
 
             }
-
             EntryWrapped.Instence.SetFlag((int)ConsoleFlags.LogLevelLog, setLogFlag);//设置日志是否输出
             EntryWrapped.Instence.SetFlag((int)ConsoleFlags.LogLevelWarning, setWarningFlag);//设置警告是否输出
             EntryWrapped.Instence.SetFlag((int)ConsoleFlags.LogLevelError, setErrorFlag);//设置报错是否输出
             #endregion
-
             #region FirstError按钮
             if (GUILayout.Button(new GUIContent(errorCount > 0 ? iconFirstErrorSmall : iconFirstErrorMono, FirstErrorLabel), MiniButton))
             {

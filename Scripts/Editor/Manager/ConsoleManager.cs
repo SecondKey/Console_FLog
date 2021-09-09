@@ -239,6 +239,11 @@ namespace ConsoleTiny
                 t = "<size=20>" + t + "</size>";
                 t += "\n";
             }
+            string[] lineList = info.text.Split('\n');
+            if (lineList.Length > NowLogStyle.MaxLine)
+            {
+                
+            }
             t += info.text;
             return t;
         }

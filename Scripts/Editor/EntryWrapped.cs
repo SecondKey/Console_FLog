@@ -439,16 +439,8 @@ namespace ConsoleTiny
                 entry = entry
             };
 
-            if (showTimestamp)
-            {
-                entryInfo.timeText = lines.Substring(0, lines.IndexOf("]"));
-                entryInfo.text = lines.Substring(lines.IndexOf("]") + 2);
-            }
-            else
-            {
-                entryInfo.timeText = "";
-            }
-
+            entryInfo.timeText = lines.Substring(0, lines.IndexOf("]") + 1);
+            entryInfo.text = lines.Substring(lines.IndexOf("]") + 2);
 
             if (entryInfo.text.Substring(0, 3) == "#!@")
             {

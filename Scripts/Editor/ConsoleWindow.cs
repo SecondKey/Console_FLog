@@ -105,7 +105,7 @@ namespace ConsoleTiny
 
         public void DoLogChanged(string logString, string stackTrace, LogType type)
         {
-            if (instence == null)
+            if (instence == null || m_NextRepaint != double.MaxValue)
                 return;
             instence.m_NextRepaint = EditorApplication.timeSinceStartup + 0.25f;
         }
@@ -203,7 +203,7 @@ namespace ConsoleTiny
             SetFlag(ConsoleFlags.ErrorPause, GUILayout.Toggle(HasFlag(ConsoleFlags.ErrorPause), ErrorPauseLabel, MiniButton));//报错时暂停按钮
             #endregion
 
-            #region AttachToPlayer下拉菜单
+            #region AttachToPlayer下拉菜单 
             ConnectionGUILayout.AttachToPlayerDropdown(m_ConsoleAttachToPlayerState, EditorStyles.toolbarDropDown);//AttachToPlayer下拉按钮
             #endregion
 
@@ -319,7 +319,8 @@ namespace ConsoleTiny
                             Rect badgeRect = el.position;//角标位置
 
                             tempContent = new GUIContent();
-                            tempContent.text = parameters.entryCount.ToString(CultureInfo.InvariantCulture);//角标中的文本
+                            tempContent.text = LogEntries.GetEntryCount(parameters.row).ToString(CultureInfo.InvariantCulture);//角标中的文本
+
                             Vector2 badgeSize = CountBadge.CalcSize(tempContent);//计算角标大小
                             badgeRect.xMin = badgeRect.xMax - badgeSize.x;
                             badgeRect.yMin += ((badgeRect.yMax - badgeRect.yMin) - badgeSize.y) * 0.5f;
@@ -405,6 +406,8 @@ namespace ConsoleTiny
             SplitterGUILayout.EndVerticalSplit();//结束纵向布局
             #endregion
         }
+
+
         #endregion
 
         #region Style

@@ -21,7 +21,7 @@
 
       <FontSize>13</FontSize>
 
-      <MaxLine>3</MaxLine>
+      <MaxLine>4</MaxLine>
     </Text>
   </Info>
 
@@ -85,12 +85,12 @@
 
     <Warning>
       <BackGroundColor>
-        <Color>0.8,0.8,0.2,0.5</Color>
-        <Color>0.8,0.8,0.2,0.5</Color>
+        <Color>0.8,0.8,0.2,0.8</Color>
+        <Color>0.8,0.8,0.2,0.8</Color>
       </BackGroundColor>
       <Icon></Icon>
       <Text>警告</Text>
-      <TextColor>0.8,0.8,0.8,0.8</TextColor>
+      <TextColor>0,0,0,0.8</TextColor>
     </Warning>
 
     <Error>
@@ -98,7 +98,8 @@
         <Color>0.8,0.1,0.1,1</Color>
         <Color>0.7,0.2,0.2,1</Color>
       </BackGroundColor>
-      <Icon></Icon>
+      <Icon>
+      </Icon>
       <Text>错误</Text>
       <TextColor>1,1,1,1</TextColor>
     </Error>

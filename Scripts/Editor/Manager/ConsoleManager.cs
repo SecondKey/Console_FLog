@@ -226,6 +226,10 @@ namespace ConsoleTiny
         internal string GetItemText(EntryInfo info)
         {
             string t = "";
+            if (EntryWrapped.Instence.showTimestamp)
+            {
+                t += info.timeText + "  ";
+            }
             if (!string.IsNullOrEmpty(info.logGroup) && NowLogStyle.LogGroupCollection.ContainsKey(info.logGroup))
             {
                 t += NowLogStyle.LogGroupCollection[info.logGroup].Text;
@@ -240,11 +244,19 @@ namespace ConsoleTiny
                 t += "\n";
             }
             string[] lineList = info.text.Split('\n');
+            string LogText = "";
             if (lineList.Length > NowLogStyle.MaxLine)
             {
-                
+                for (int i = 0; i < NowLogStyle.MaxLine; i++)
+                {
+                    LogText += lineList[i] + "\n";
+                }
             }
-            t += info.text;
+            else
+            {
+                LogText = info.text;
+            }
+            t += LogText;
             return t;
         }
 

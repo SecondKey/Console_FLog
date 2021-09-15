@@ -34,9 +34,9 @@ namespace ConsoleTiny
         {
             LogAssert(logText, "TMP");
         }
-        public static void LogDisastrous(string logText)
+        public static void LogDisastrous(object logText)
         {
-            LogDisastrous(logText, "TMP");
+            LogDisastrous(logText.ToString(), "TMP");
         }
         #endregion
 

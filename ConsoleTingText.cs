@@ -23,13 +23,18 @@ public class ConsoleTingText : MonoBehaviour
         Debug.Log(123);
         Debug.LogWarning(123);
         Debug.LogError(123);
+        ConsoleTiny.CLog.LogDisastrous(0);
 
-
+        List<string> s = new List<string>();
+        for (int i = 0; i < 3; i++)
+        {
+            Debug.Log(s[i]);
+        }
     }
 
     // Update is called once per frame
     void Update()
     {
-        Debug.Log(0);
+        //ConsoleTiny.CLog.LogDisastrous(0);
     }
 }

@@ -5,11 +5,6 @@
     <DefaultLogStyle>DefaultStyle</DefaultLogStyle>
   </Info>
 
-
-  <LogLineCount>
-
-  </LogLineCount>
-
   <GUIStyle>
     <Box>CN Box</Box>
     <MiniButton>ToolbarButton</MiniButton>
@@ -24,10 +19,14 @@
     <OddBackground>CN EntryBackodd</OddBackground>
     <MessageStyle>
       <Name>CN Message</Name>
-      <OnNormal>
-        <textColor>0,0,0,1</textColor>
-      </OnNormal>
-      <Padding>0,20,0,0</Padding>
+      <normal>
+        <textColor>1,1,1,1</textColor>
+      </normal>
+      <onNormal>
+        <textColor>1,1,1,1</textColor>
+      </onNormal>
+      <FongSize>15</FongSize>
+      <Padding>0,5,0,0</Padding>
     </MessageStyle>
     <StatusError>CN StatusError</StatusError>
     <StatusWarn>CN StatusWarn</StatusWarn>
@@ -40,4 +39,9 @@
     <IconWarningSmallStyle>CN EntryWarnIconSmall</IconWarningSmallStyle>
     <IconErrorSmallStyle>CN EntryErrorIconSmall</IconErrorSmallStyle>
   </GUIStyle>
+
+  <StackTraceIgnore>
+    <System/>
+    <ConsoleTiny/>
+  </StackTraceIgnore>
 </ConsoleStyle>

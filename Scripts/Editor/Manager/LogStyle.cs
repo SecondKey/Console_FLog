@@ -47,8 +47,15 @@ namespace ConsoleTiny
 
         public int IconSizeX { get; private set; }
         public int IconSizeY { get; private set; }
-        #endregion 
         #endregion
+        #endregion
+
+
+        #region StackTraceColor
+        public Dictionary<string, string> StackTraceColor;
+        #endregion 
+
+
 
         #region Texture
         public Dictionary<string, Texture2D> BackGroundTextureCollection;
@@ -61,7 +68,7 @@ namespace ConsoleTiny
         public void LoadStyle()
         {
             check = new Texture2D(1, 1);
-            check.SetPixel(1, 1, new UnityEngine.Color(0.2f, 0.2f, 0.7f, 1f));
+            check.SetPixel(1, 1, new UnityEngine.Color(0.2f, 0.2f, 0.9f, 1f));
             check.Apply();
             XElement root = XDocument.Load(stylePath + "/Style.xml").Root;
 
@@ -89,6 +96,12 @@ namespace ConsoleTiny
             FontSize = int.Parse(TextElement.Element("FontSize").Value.ToString());
             MaxLine = int.Parse(TextElement.Element("MaxLine").Value.ToString());
             #endregion
+
+            StackTraceColor = new Dictionary<string, string>();
+            foreach (XElement color in root.Element("StackTraceColor").Elements())
+            {
+                StackTraceColor.Add(color.Name.ToString(), color.Value);
+            }
 
             #region Texture
             BackGroundTextureCollection = new Dictionary<string, Texture2D>();

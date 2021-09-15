@@ -227,7 +227,7 @@ namespace ConsoleTiny
 
             #region Log开关，Worring开关，Error开关
             int errorCount = 0;//报错数量
-            int warningCount = 0;//错误数量
+            int warningCount = 0;//错误数量 
             int logCount = 0;//日志数量
             EntryWrapped.Instence.GetCountsByType(ref errorCount, ref warningCount, ref logCount);//获取三种输出的数量
             EditorGUI.BeginChangeCheck();
@@ -683,6 +683,7 @@ namespace ConsoleTiny
             ListViewGUI.ilvState.beganHorizontal = true;
             messageListView.draggedFrom = -1;
             messageListView.draggedTo = -1;
+            messageListView.rowHeight = 20;
             messageListView.fileNames = null;
             #endregion
 
@@ -711,7 +712,8 @@ namespace ConsoleTiny
                     {
                         rect.width = maxWidth;
                     }
-                    MessageStyle.Draw(rect, tempContent, id, messageListView.row == el.row);//绘制目标范围
+                    GUIStyle s = MessageStyle;
+                    s.Draw(rect, tempContent, id, messageListView.row == el.row);//绘制目标范围
                 }
             }
 

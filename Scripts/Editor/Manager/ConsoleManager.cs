@@ -179,9 +179,14 @@ namespace ConsoleTiny
             return style;
         }
 
-        public Texture GetTexture(string logType)
+
+        public string GetStackTraceColor(string colorName)
         {
-            return null;
+            if (!string.IsNullOrEmpty(colorName) && NowLogStyle.StackTraceColor.ContainsKey(colorName))
+            {
+                return NowLogStyle.StackTraceColor[colorName];
+            }
+            return "FFFFFF";
         }
 
         //public GUIStyle GetItemBackgroundStyle(ConsoleFlags logType, bool userLog, int num)
@@ -192,7 +197,10 @@ namespace ConsoleTiny
                 int count = NowLogStyle.LogItemStyleCollection[info.logType].BackgroundStyleList.Count;
                 if (count > 0)
                 {
-                    return NowLogStyle.LogItemStyleCollection[info.logType].BackgroundStyleList[num % count];
+                    GUIStyle s = NowLogStyle.LogItemStyleCollection[info.logType].BackgroundStyleList[num % count];
+                    if (s.onNormal.background == null)
+                        s.onNormal.background = NowLogStyle.check;
+                    return s;
                 }
             }
             GUIStyle style = num % 2 == 0 ? OddBackground : EvenBackground;

@@ -14,32 +14,10 @@ namespace ConsoleTiny
         private Dictionary<string, GUIStyle> GUIStyleList = new Dictionary<string, GUIStyle>();
         #endregion
 
-        #region logLineCount
-        private int logLineCount;
-        //public static int LogStyleLineCount
-        //{
-        //    get { return 20; }
-        //    set
-        //    {
-        //        ms_logStyleLineCount = value;
-        //        EntryWrapped.Instence.numberOfLines = value;
-
-        //        // If Constants hasn't been initialized yet we just skip this for now
-        //        // and let Init() call this for us in a bit.
-        //        if (!Instence.loadAlready)
-        //            return;
-        //        UpdateLogStyleFixedHeights();
-        //    }
-        //}
-        //private static void UpdateLogStyleFixedHeights()
-        //{
-        // Whenever we change the line height count or the styles are set we need to update the fixed height
-        // of the following GuiStyles so the entries do not get cropped incorrectly.
-        //ErrorStyle.fixedHeight = (LogStyleLineCount * ErrorStyle.lineHeight) + ErrorStyle.border.top;
-        //WarningStyle.fixedHeight = (LogStyleLineCount * WarningStyle.lineHeight) + WarningStyle.border.top;
-        //LogStyle.fixedHeight = (LogStyleLineCount * LogStyle.lineHeight) + LogStyle.border.top;
-        //}
+        #region StackTraceIgnore
+        public List<string> StackTraceIgnoreCollection;
         #endregion
+
         public ConsoleStyle(string stylePath)
         {
             XElement root = XDocument.Load(stylePath + "/Style.xml").Root;
@@ -53,6 +31,12 @@ namespace ConsoleTiny
             {
                 LoadGUIStyleFromXml(element);
             }
+
+            StackTraceIgnoreCollection = new List<string>();
+            foreach (XElement element in root.Element("StackTraceIgnore").Elements())
+            {
+                StackTraceIgnoreCollection.Add(element.Name.ToString());
+            }
         }
 
         public void LoadGUIStyleFromXml(XElement styleElement)
@@ -63,7 +47,18 @@ namespace ConsoleTiny
             {
                 switch (styleParameters.Name.ToString())
                 {
-                    case "OnNormal":
+                    case "normal":
+                        foreach (XElement OnNormalParameter in styleParameters.Elements())
+                        {
+                            switch (OnNormalParameter.Name.ToString())
+                            {
+                                case "textColor":
+                                    style.normal.textColor = OnNormalParameter.Value.GetColor();
+                                    break;
+                            }
+                        }
+                        break;
+                    case "onNormal":
                         foreach (XElement OnNormalParameter in styleParameters.Elements())
                         {
                             switch (OnNormalParameter.Name.ToString())
@@ -73,6 +68,10 @@ namespace ConsoleTiny
                                     break;
                             }
                         }
+                        break;
+                    case "FongSize":
+                        style.fontSize = int.Parse(styleParameters.Value.ToString());
+                        style.stretchHeight = true;
                         break;
                     case "Padding":
                         style.padding = styleParameters.Value.GetRectOffset();

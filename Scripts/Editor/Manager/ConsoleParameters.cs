@@ -65,7 +65,7 @@ namespace ConsoleTiny
         public static GUIStyle IconErrorStyle { get { return GetGUIStyle("IconErrorStyle"); } }
         public static GUIStyle EvenBackground { get { return GetGUIStyle("EvenBackground"); } }
         public static GUIStyle OddBackground { get { return GetGUIStyle("OddBackground"); } }
-        public static GUIStyle MessageStyle { get { return GetGUIStyle("MessageStyle"); } }
+        public static GUIStyle MessageStyle {   get { return GetGUIStyle("MessageStyle"); }}
         public static GUIStyle StatusError { get { return GetGUIStyle("StatusError"); } }
         public static GUIStyle StatusWarn { get { return GetGUIStyle("StatusWarn"); } }
         public static GUIStyle StatusLog { get { return GetGUIStyle("StatusLog"); } }

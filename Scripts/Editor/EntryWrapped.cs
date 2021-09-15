@@ -1012,12 +1012,12 @@ namespace ConsoleTiny
 
         internal class Constants
         {
-            public static string colorNamespace, colorNamespaceAlpha;
-            public static string colorClass, colorClassAlpha;
-            public static string colorMethod, colorMethodAlpha;
-            public static string colorParameters, colorParametersAlpha;
-            public static string colorPath, colorPathAlpha;
-            public static string colorFilename, colorFilenameAlpha;
+            //public static string colorNamespace, colorNamespaceAlpha;
+            //public static string colorClass, colorClassAlpha;
+            //public static string colorMethod, colorMethodAlpha;
+            //public static string colorParameters, colorParametersAlpha;
+            //public static string colorPath, colorPathAlpha;
+            //public static string colorFilename, colorFilenameAlpha;
         }
 
         /// <summary>
@@ -1252,23 +1252,26 @@ namespace ConsoleTiny
             if (alphaColor)
             {
                 info.text =
-                    string.Format("<color=#{0}>{1}</color>", Constants.colorNamespaceAlpha, namespaceString) +
-                    string.Format("<color=#{0}>{1}</color>", Constants.colorClassAlpha, classString) +
-                    string.Format("<color=#{0}>{1}</color>", Constants.colorMethodAlpha, methodString) +
-                    string.Format("<color=#{0}>{1}</color>", Constants.colorParametersAlpha, argsString) +
-                    string.Format("<color=#{0}>{1}</color>", Constants.colorPathAlpha, fileString) +
-                    string.Format("<color=#{0}>{1}</color>", Constants.colorFilenameAlpha, fileNameString) +
-                    string.Format("<color=#{0}>{1}</color>", Constants.colorPathAlpha, fileLineString);
+                    $"<color=#{ConsoleManager.Instence.GetStackTraceColor("Ignore")}>" +
+                    namespaceString +
+                    classString +
+                    methodString +
+                    argsString +
+                    fileString +
+                    fileNameString +
+                    fileLineString +
+                    "</color>";
             }
             else
             {
-                info.text = string.Format("<color=#{0}>{1}</color>", Constants.colorNamespace, namespaceString) +
-                            string.Format("<color=#{0}>{1}</color>", Constants.colorClass, classString) +
-                            string.Format("<color=#{0}>{1}</color>", Constants.colorMethod, methodString) +
-                            string.Format("<color=#{0}>{1}</color>", Constants.colorParameters, argsString) +
-                            string.Format("<color=#{0}>{1}</color>", Constants.colorPath, fileString) +
-                            string.Format("<color=#{0}>{1}</color>", Constants.colorFilename, fileNameString) +
-                            string.Format("<color=#{0}>{1}</color>", Constants.colorPath, fileLineString);
+                info.text =
+                    string.Format("<color=#{0}>{1}</color>", ConsoleManager.Instence.GetStackTraceColor("Namespace"), namespaceString) +
+                    string.Format("<color=#{0}>{1}</color>", ConsoleManager.Instence.GetStackTraceColor("Class"), classString) +
+                    string.Format("<color=#{0}>{1}</color>", ConsoleManager.Instence.GetStackTraceColor("Method"), methodString) +
+                    string.Format("<color=#{0}>{1}</color>", ConsoleManager.Instence.GetStackTraceColor("Parameters"), argsString) +
+                    string.Format("<color=#{0}>{1}</color>", ConsoleManager.Instence.GetStackTraceColor("Path"), fileString) +
+                    string.Format("<color=#{0}>{1}</color>", ConsoleManager.Instence.GetStackTraceColor("Filename"), fileNameString) +
+                    string.Format("<color=#{0}>{1}</color>", ConsoleManager.Instence.GetStackTraceColor("Path"), fileLineString);
                 info.wrapper = namespaceString + classString;
                 if (info.wrapper.Length > 0)
                 {
@@ -1279,6 +1282,8 @@ namespace ConsoleTiny
             return true;
         }
 
+
+        //TODO:
         /// <summary>
         /// 解析Lua跟踪堆栈信息
         /// </summary>
@@ -1339,19 +1344,19 @@ namespace ConsoleTiny
                             filePath.Length - namespaceString.Length - luaFileExt.Length);
 
 
-                        info.text = string.Format("	<color=#{0}>{1}</color>", Constants.colorNamespace,
-                                        namespaceString) +
-                                    string.Format("<color=#{0}>{1}</color>", Constants.colorClass, classString) +
-                                    string.Format("<color=#{0}>:{1}</color>", Constants.colorPath, lineString) +
-                                    string.Format("<color=#{0}>{1}</color>", Constants.colorPath, luaMethodBefore) +
-                                    string.Format("<color=#{0}>{1}</color>", Constants.colorMethod, methodString);
+                        //info.text = string.Format("	<color=#{0}>{1}</color>", Constants.colorNamespace,
+                        //                namespaceString) +
+                        //            string.Format("<color=#{0}>{1}</color>", Constants.colorClass, classString) +
+                        //            string.Format("<color=#{0}>:{1}</color>", Constants.colorPath, lineString) +
+                        //            string.Format("<color=#{0}>{1}</color>", Constants.colorPath, luaMethodBefore) +
+                        //            string.Format("<color=#{0}>{1}</color>", Constants.colorMethod, methodString);
                     }
                 }
             }
             else
             {
-                info.text = string.Format("<color=#{0}>{1}</color>", Constants.colorPathAlpha, preMethodString) +
-                            string.Format("<color=#{0}>{1}</color>", Constants.colorMethodAlpha, methodString);
+                //info.text = string.Format("<color=#{0}>{1}</color>", Constants.colorPathAlpha, preMethodString) +
+                //            string.Format("<color=#{0}>{1}</color>", Constants.colorMethodAlpha, methodString);
             }
 
             return true;

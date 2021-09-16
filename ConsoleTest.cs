@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class ConsoleTingText : MonoBehaviour
+public class ConsoleTest : MonoBehaviour
 {
 
     private void Start()

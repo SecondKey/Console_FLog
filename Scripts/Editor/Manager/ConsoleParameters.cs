@@ -29,7 +29,7 @@ namespace ConsoleTiny
 
         #region Static 
         #region Info
-        public static string ConsoleTingPath = Application.dataPath + "/Plugin/ConsoleTing/";
+        public static string ConsoleTinyPath = Application.dataPath + "/Plugin/ConsoleTiny/";
         #endregion
 
         #region List

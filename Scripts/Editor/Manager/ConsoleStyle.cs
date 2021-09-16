@@ -15,7 +15,8 @@ namespace ConsoleTiny
         #endregion
 
         #region StackTraceIgnore
-        public List<string> StackTraceIgnoreCollection;
+        public List<string> FileIgnoreCollection;
+        public List<string> NameSpackIgnoreCollection;
         #endregion
 
         public ConsoleStyle(string stylePath)
@@ -32,10 +33,15 @@ namespace ConsoleTiny
                 LoadGUIStyleFromXml(element);
             }
 
-            StackTraceIgnoreCollection = new List<string>();
-            foreach (XElement element in root.Element("StackTraceIgnore").Elements())
+            FileIgnoreCollection = new List<string>();
+            foreach (XElement element in root.Element("StackTraceIgnore").Element("File").Elements())
             {
-                StackTraceIgnoreCollection.Add(element.Name.ToString());
+                FileIgnoreCollection.Add(element.Value);
+            }
+            NameSpackIgnoreCollection = new List<string>();
+            foreach (XElement element in root.Element("StackTraceIgnore").Element("NameSpace").Elements())
+            {
+                NameSpackIgnoreCollection.Add(element.Value);
             }
         }
 

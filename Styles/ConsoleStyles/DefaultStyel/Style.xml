@@ -41,7 +41,13 @@
   </GUIStyle>
 
   <StackTraceIgnore>
-    <System/>
-    <ConsoleTiny/>
+    <File>
+      <File>ConsoleTiny/Scripts</File>
+
+    </File>
+    <NameSpace>
+      <NameSpace>ConsoleTiny</NameSpace>
+      <NameSpace>GSFramework.Dev</NameSpace>
+    </NameSpace>
   </StackTraceIgnore>
 </ConsoleStyle>

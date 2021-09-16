@@ -106,6 +106,12 @@ namespace ConsoleTiny
         /// 用于包装的文本
         /// </summary>
         public string wrapper;
+
+        /// <summary>
+        /// 该条目是否被忽略
+        /// </summary>
+        public bool ignore = true;
+
         /// <summary>
         /// 文件地址
         /// </summary>

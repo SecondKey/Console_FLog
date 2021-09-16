@@ -6,6 +6,7 @@ using System;
 using System.Text;
 using System.IO;
 using static ConsoleTiny.ConsoleParameters;
+using System.Linq;
 
 namespace ConsoleTiny
 {
@@ -1197,7 +1198,8 @@ namespace ConsoleTiny
             string fileString = String.Empty;
             string fileNameString = String.Empty;
             string fileLineString = String.Empty;
-            bool alphaColor = true;
+            bool systemIgnoreColor = true;
+            bool userIgnoreColor = true;
 
             int filePathIndex = line.IndexOf(textBeforeFilePath, argsLastIndex, StringComparison.Ordinal);
             if (filePathIndex > 0)
@@ -1217,10 +1219,20 @@ namespace ConsoleTiny
                             string filePath = filePathPart.Substring(0, lineIndex);
 
                             bool isInBuildSlave = filePath.StartsWith(fileInBuildSlave, StringComparison.Ordinal);
+
                             if (!isInBuildSlave)
                             {
-                                alphaColor = false;
+                                systemIgnoreColor = false;
                             }
+
+                            bool isFileIgnore = ConsoleManager.Instence.IsIgnoreFile(filePath);
+                            bool isNameSpaceIgnore = ConsoleManager.Instence.IsIgnoreNameSpace(line);
+                            if (!isFileIgnore && !isNameSpaceIgnore)
+                            {
+                                userIgnoreColor = false;
+                                info.ignore = false;
+                            }
+
 
                             info.filePath = filePath;
                             info.lineNum = int.Parse(lineString);
@@ -1249,10 +1261,23 @@ namespace ConsoleTiny
                 }
             }
 
-            if (alphaColor)
+            if (systemIgnoreColor)
             {
                 info.text =
-                    $"<color=#{ConsoleManager.Instence.GetStackTraceColor("Ignore")}>" +
+                    $"<color=#{ConsoleManager.Instence.GetStackTraceColor("SystemIgnore")}>" +
+                    namespaceString +
+                    classString +
+                    methodString +
+                    argsString +
+                    fileString +
+                    fileNameString +
+                    fileLineString +
+                    "</color>";
+            }
+            else if (userIgnoreColor)
+            {
+                info.text =
+                    $"<color=#{ConsoleManager.Instence.GetStackTraceColor("UserIgnore")}>" +
                     namespaceString +
                     classString +
                     methodString +
@@ -1375,11 +1400,22 @@ namespace ConsoleTiny
                 return false;//不能打开
             }
 
-            if (stacktraceLineInfoIndex < m_SelectedInfo.stacktraceLineInfos.Count)//如果选择的目标是合法的
+            if (stacktraceLineInfoIndex >= m_SelectedInfo.stacktraceLineInfos.Count)//如果选择的目标是合法的
             {
-                return !string.IsNullOrEmpty(m_SelectedInfo.stacktraceLineInfos[stacktraceLineInfoIndex].filePath);//返回目标是否包含文件地址
+                return false;//不能打开
             }
-            return false;//不能打开
+
+            if (m_SelectedInfo.stacktraceLineInfos[stacktraceLineInfoIndex].ignore)
+            {
+                return false;//不能打开
+            }
+
+            if (string.IsNullOrEmpty(m_SelectedInfo.stacktraceLineInfos[stacktraceLineInfoIndex].filePath))
+            {
+                return false;//不能打开
+            }
+            return true;//返回目标是否包含文件地址
+
         }
         /// <summary>
         /// 检查目标条目是否可以被包装
@@ -1430,7 +1466,7 @@ namespace ConsoleTiny
             for (var i = 0; i < m_SelectedInfo.stacktraceLineInfos.Count; i++)
             {
                 var stacktraceLineInfo = m_SelectedInfo.stacktraceLineInfos[i];
-                if (!string.IsNullOrEmpty(stacktraceLineInfo.filePath))
+                if (!string.IsNullOrEmpty(stacktraceLineInfo.filePath) && !stacktraceLineInfo.ignore)
                 {
                     if (string.IsNullOrEmpty(stacktraceLineInfo.wrapper) || !m_WrapperInfos.Contains(stacktraceLineInfo.wrapper))
                     {

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Xml.Linq;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using static ConsoleTiny.ConsoleParameters;
@@ -53,7 +54,7 @@ namespace ConsoleTiny
         {
             optionLoadAlready = true;
 
-            optionXml = XDocument.Load(ConsoleTingPath + "/Options/Option.xml");
+            optionXml = XDocument.Load(ConsoleTinyPath + "/Options/Option.xml");
             XElement root = optionXml.Root;
 
             ChangeLogStyle(root.Element("Style").Element("NowChoiseLogStyle").Value);
@@ -74,12 +75,12 @@ namespace ConsoleTiny
             ConsoleStyleList = new Dictionary<string, ConsoleStyle>();
             LogStyleList = new Dictionary<string, LogStyle>();
 
-            foreach (DirectoryInfo info in new DirectoryInfo(ConsoleTingPath + "Styles/ConsoleStyles").GetDirectories())
+            foreach (DirectoryInfo info in new DirectoryInfo(ConsoleTinyPath + "Styles/ConsoleStyles").GetDirectories())
             {
                 ConsoleStyle style = new ConsoleStyle(info.FullName);
                 ConsoleStyleList.Add(style.StyleName, style);
             }
-            foreach (DirectoryInfo info in new DirectoryInfo(ConsoleTingPath + "Styles/LogStyles").GetDirectories())
+            foreach (DirectoryInfo info in new DirectoryInfo(ConsoleTinyPath + "Styles/LogStyles").GetDirectories())
             {
                 LogStyle style = new LogStyle(info.FullName);
                 LogStyleList.Add(style.StyleName, style);
@@ -275,6 +276,24 @@ namespace ConsoleTiny
                 origionRect.y + NowLogStyle.TextOffectY,
                 origionRect.width - NowLogStyle.TextOffectX,
                 origionRect.height - NowLogStyle.TextOffectY);
+        }
+
+        public bool IsIgnoreFile(string path)
+        {
+            if (path != null)
+            {
+                return NowConsoleStyle.FileIgnoreCollection.Where(q => path.Contains(q)).Count() != 0;
+            }
+            return true;
+        }
+
+        public bool IsIgnoreNameSpace(string path)
+        {
+            if (path != null)
+            {
+                return NowConsoleStyle.NameSpackIgnoreCollection.Where(q => path.StartsWith(q, System.StringComparison.Ordinal)).Count() != 0;
+            }
+            return true;
         }
         #endregion
     }

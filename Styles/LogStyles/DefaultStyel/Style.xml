@@ -51,13 +51,14 @@
     </BackGround>
   </Image>
   <StackTraceColor>
-    <Ignore>C1CF46</Ignore>
+    <SystemIgnore>46B6CF</SystemIgnore>
+    <UserIgnore>C1CF46</UserIgnore>
 
     <Namespace>CF8745</Namespace>
     <Class>46CF85</Class>
     <Method>FF7CA2</Method>
-    <Parameters>B746CF</Parameters>
-    <Path>46B6CF</Path>
+    <Parameters>D688FF</Parameters>
+    <Path>C0FF00</Path>
     <Filename>FF7CA2</Filename>
   </StackTraceColor>
 
@@ -98,8 +99,8 @@
 
     <Warning>
       <BackGroundColor>
-        <Color>0.8,0.8,0.2,0.8</Color>
-        <Color>0.8,0.8,0.2,0.8</Color>
+        <Color>1,0.8,0.2,0.8</Color>
+        <Color>1,0.8,0.3,0.8</Color>
       </BackGroundColor>
       <Icon>
         <Icon>CommonImage</Icon>

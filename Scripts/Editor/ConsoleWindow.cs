@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Globalization;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using UnityEngine.Experimental.Networking.PlayerConnection;
@@ -234,16 +235,32 @@ namespace ConsoleTiny
             bool setLogFlag = GUILayout.Toggle(EntryWrapped.Instence.HasFlag((int)ConsoleFlags.LogLevelLog), new GUIContent((logCount <= 999 ? logCount.ToString() : "999+"), logCount > 0 ? iconInfoSmall : iconInfoMono), MiniButton);//日志按钮
             bool setWarningFlag = GUILayout.Toggle(EntryWrapped.Instence.HasFlag((int)ConsoleFlags.LogLevelWarning), new GUIContent((warningCount <= 999 ? warningCount.ToString() : "999+"), warningCount > 0 ? iconWarnSmall : iconWarnMono), MiniButton);//警告按钮
             bool setErrorFlag = GUILayout.Toggle(EntryWrapped.Instence.HasFlag((int)ConsoleFlags.LogLevelError), new GUIContent((errorCount <= 999 ? errorCount.ToString() : "999+"), errorCount > 0 ? iconErrorSmall : iconErrorMono), MiniButton);//报错按钮
-            if (EditorGUI.EndChangeCheck())
-            {
-
-            }
+            if (EditorGUI.EndChangeCheck()) { }
             EntryWrapped.Instence.SetFlag((int)ConsoleFlags.LogLevelLog, setLogFlag);//设置日志是否输出
             EntryWrapped.Instence.SetFlag((int)ConsoleFlags.LogLevelWarning, setWarningFlag);//设置警告是否输出
             EntryWrapped.Instence.SetFlag((int)ConsoleFlags.LogLevelError, setErrorFlag);//设置报错是否输出
+
+            Rect rect = GUILayoutUtility.GetRect(0, 0, 0, 0);
+            if (GUILayout.Button(new GUIContent("Log Type"), EditorStyles.toolbarDropDown))
+            {
+                rect.y += 20;
+                //var menuData = new CustomFiltersItemProvider(EntryWrapped.Instence.customFilters);
+                var flexibleMenu = new TypePopupContent();
+                PopupWindow.Show(rect, flexibleMenu);
+            }
+            rect = GUILayoutUtility.GetRect(0, 0, 0, 0);
+            if (GUILayout.Button(new GUIContent("Log Group"), EditorStyles.toolbarDropDown))
+            {
+                rect.y += 20;
+                //var menuData = new CustomFiltersItemProvider(EntryWrapped.Instence.customFilters);
+                var flexibleMenu = new GroupPopupContent();
+                PopupWindow.Show(rect, flexibleMenu);
+            }
+
             #endregion
+
             #region FirstError按钮
-            if (GUILayout.Button(new GUIContent(errorCount > 0 ? iconFirstErrorSmall : iconFirstErrorMono, FirstErrorLabel), MiniButton))
+            if (GUILayout.Button(new GUIContent(errorCount > 0 ? iconFirstErrorSmall : iconFirstErrorMono, FirstErrorLabel) { text = "First Error" }, MiniButton))
             {
                 int firstErrorIndex = EntryWrapped.Instence.GetFirstErrorEntryIndex();
                 if (firstErrorIndex != -1)
@@ -867,6 +884,83 @@ namespace ConsoleTiny
         {
             if (!m_Disposed)
                 Debug.LogError("Scope was not disposed! You should use the 'using' keyword or manually call Dispose.");
+        }
+    }
+
+    class TypePopupContent : PopupWindowContent
+    {
+        bool singleLog = false;
+
+        bool IsSingleLog { get { return singleLog; } set { singleLog = value; } }
+        bool NotSingleLog { get { return !singleLog; } set { singleLog = !value; } }
+
+        public override Vector2 GetWindowSize()
+        {
+            return new Vector2(200, 150);
+        }
+
+        public override void OnGUI(Rect rect)
+        {
+            //GUILayout.Label("Popup Options Example", EditorStyles.boldLabel);
+
+            List<string> list = ConsoleManager.Instence.NowConsoleStyle.LogTypeCollection;
+
+            IsSingleLog = EditorGUILayout.BeginToggleGroup("Single Log Type", IsSingleLog);
+
+            EditorGUILayout.EndToggleGroup();
+
+            NotSingleLog = !EditorGUILayout.BeginToggleGroup("Log Type", NotSingleLog);
+            foreach (var item in list)
+            {
+                ConsoleManager.Instence.LogTypeLogCollection[item] = EditorGUILayout.Toggle(item, ConsoleManager.Instence.LogTypeLogCollection[item]);
+            }
+            EditorGUILayout.EndToggleGroup();
+        }
+
+        public override void OnOpen()
+        {
+        }
+
+        public override void OnClose()
+        {
+        }
+    }
+
+
+    class GroupPopupContent : PopupWindowContent
+    {
+        bool singleLog = false;
+
+        bool IsSingleLog { get { return singleLog; } set { singleLog = value; } }
+        bool NotSingleLog { get { return !singleLog; } set { singleLog = !value; } }
+
+        public override Vector2 GetWindowSize()
+        {
+            return new Vector2(200, 150);
+        }
+
+        public override void OnGUI(Rect rect)
+        {
+            List<string> list = ConsoleManager.Instence.NowConsoleStyle.LogGroupCollection;
+
+            IsSingleLog = EditorGUILayout.BeginToggleGroup("Single Log Group", IsSingleLog);
+
+            EditorGUILayout.EndToggleGroup();
+
+            NotSingleLog = !EditorGUILayout.BeginToggleGroup("Log Group", NotSingleLog);
+            foreach (var item in list)
+            {
+                ConsoleManager.Instence.LogGroupLogCollection[item] = EditorGUILayout.Toggle(item, ConsoleManager.Instence.LogGroupLogCollection[item]);
+            }
+            EditorGUILayout.EndToggleGroup();
+        }
+
+        public override void OnOpen()
+        {
+        }
+
+        public override void OnClose()
+        {
         }
     }
 }

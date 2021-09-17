@@ -50,4 +50,20 @@
       <NameSpace>GSFramework.Dev</NameSpace>
     </NameSpace>
   </StackTraceIgnore>
+
+  <LogType>
+    <Type>Log</Type>
+    <Type>MainParameter</Type>
+    <Type>Examine</Type>
+    <Type>Warning</Type>
+    <Type>Error</Type>
+    <Type>Assert</Type>
+    <Type>Disastrous</Type>
+  </LogType>
+
+  <LogGroup>
+    <Group>System</Group>
+    <Group>TMP</Group>
+    <Group>IOC</Group>
+  </LogGroup>
 </ConsoleStyle>

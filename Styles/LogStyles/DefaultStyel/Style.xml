@@ -145,12 +145,12 @@
   </ItemStyle>
 
   <LogGroup>
-    <TMP>
-      <Text>临时的</Text>
-    </TMP>
     <System>
       <Text>系统</Text>
     </System>
+    <TMP>
+      <Text>临时的</Text>
+    </TMP>
     <IOC>
       <Text>依赖注入</Text>
     </IOC>

@@ -168,6 +168,48 @@ namespace ConsoleTiny
         }
 
 
+        #region Log
+        Dictionary<string, bool> logTypeLogCollection;
+        Dictionary<string, bool> logGroupLogCollection;
+
+        public Dictionary<string, bool> LogTypeLogCollection
+        {
+            get
+            {
+                if (logTypeLogCollection == null)
+                {
+                    logTypeLogCollection = new Dictionary<string, bool>();
+                    if (logTypeLogCollection.Count == 0 && NowConsoleStyle != null)
+                    {
+                        foreach (string item in NowConsoleStyle.LogTypeCollection)
+                        {
+                            logTypeLogCollection.Add(item, true);
+                        }
+                    }
+                }
+                return logTypeLogCollection;
+            }
+        }
+        public Dictionary<string, bool> LogGroupLogCollection
+        {
+            get
+            {
+                if (logGroupLogCollection == null)
+                {
+                    logGroupLogCollection = new Dictionary<string, bool>();
+                    if (logGroupLogCollection.Count == 0 && NowConsoleStyle != null)
+                    {
+                        foreach (string item in NowConsoleStyle.LogGroupCollection)
+                        {
+                            logGroupLogCollection.Add(item, true);
+                        }
+                    }
+                }
+                return logGroupLogCollection;
+            }
+        }
+        #endregion 
+
 
         #region Resources/Style
         public GUIStyle GetConsoleStyle(string styleName)

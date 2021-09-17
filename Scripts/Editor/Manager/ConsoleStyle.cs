@@ -19,6 +19,11 @@ namespace ConsoleTiny
         public List<string> NameSpackIgnoreCollection;
         #endregion
 
+        #region Log
+        public List<string> LogTypeCollection;
+        public List<string> LogGroupCollection;
+        #endregion 
+
         public ConsoleStyle(string stylePath)
         {
             XElement root = XDocument.Load(stylePath + "/Style.xml").Root;
@@ -43,6 +48,19 @@ namespace ConsoleTiny
             {
                 NameSpackIgnoreCollection.Add(element.Value);
             }
+
+
+            LogTypeCollection = new List<string>();
+            foreach (XElement element in root.Element("LogType").Elements())
+            {
+                LogTypeCollection.Add(element.Value);
+            }
+            LogGroupCollection = new List<string>();
+            foreach (XElement element in root.Element("LogGroup").Elements())
+            {
+                LogGroupCollection.Add(element.Value);
+            }
+
         }
 
         public void LoadGUIStyleFromXml(XElement styleElement)

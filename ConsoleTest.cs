@@ -23,7 +23,7 @@ public class ConsoleTest : MonoBehaviour
         Debug.Log(123);
         Debug.LogWarning(123);
         Debug.LogError(123);
-        ConsoleTiny.CLog.LogDisastrous(0);
+        ConsoleTiny.FLog.LogDisastrous(0);
 
         List<string> s = new List<string>();
         for (int i = 0; i < 3; i++)

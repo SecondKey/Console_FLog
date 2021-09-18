@@ -889,28 +889,23 @@ namespace ConsoleTiny
 
     class TypePopupContent : PopupWindowContent
     {
-        bool singleLog = false;
-
-        bool IsSingleLog { get { return singleLog; } set { singleLog = value; } }
-        bool NotSingleLog { get { return !singleLog; } set { singleLog = !value; } }
+        List<string> typeList;
+        int singleLogIndex;
 
         public override Vector2 GetWindowSize()
         {
-            return new Vector2(200, 150);
+            return new Vector2(200, 56 + typeList.Count * 18);
         }
 
         public override void OnGUI(Rect rect)
         {
-            //GUILayout.Label("Popup Options Example", EditorStyles.boldLabel);
-
-            List<string> list = ConsoleManager.Instence.NowConsoleStyle.LogTypeCollection;
-
-            IsSingleLog = EditorGUILayout.BeginToggleGroup("Single Log Type", IsSingleLog);
-
+            ConsoleManager.Instence.UseSingleType = EditorGUILayout.BeginToggleGroup("Single Log Type", ConsoleManager.Instence.UseSingleType);
+            singleLogIndex = EditorGUILayout.IntPopup(singleLogIndex, typeList.ToArray(), null);
+            ConsoleManager.Instence.SingleType = typeList[singleLogIndex];
             EditorGUILayout.EndToggleGroup();
 
-            NotSingleLog = !EditorGUILayout.BeginToggleGroup("Log Type", NotSingleLog);
-            foreach (var item in list)
+            ConsoleManager.Instence.UseSingleType = !EditorGUILayout.BeginToggleGroup("Log Type", !ConsoleManager.Instence.UseSingleType);
+            foreach (var item in typeList)
             {
                 ConsoleManager.Instence.LogTypeLogCollection[item] = EditorGUILayout.Toggle(item, ConsoleManager.Instence.LogTypeLogCollection[item]);
             }
@@ -919,6 +914,8 @@ namespace ConsoleTiny
 
         public override void OnOpen()
         {
+            typeList = ConsoleManager.Instence.NowConsoleStyle.LogTypeCollection;
+            singleLogIndex = typeList.IndexOf(ConsoleManager.Instence.SingleType);
         }
 
         public override void OnClose()
@@ -929,26 +926,23 @@ namespace ConsoleTiny
 
     class GroupPopupContent : PopupWindowContent
     {
-        bool singleLog = false;
-
-        bool IsSingleLog { get { return singleLog; } set { singleLog = value; } }
-        bool NotSingleLog { get { return !singleLog; } set { singleLog = !value; } }
+        List<string> groupList;
+        int singleLogIndex;
 
         public override Vector2 GetWindowSize()
         {
-            return new Vector2(200, 150);
+            return new Vector2(200, (groupList.Count + 3) * 18 + 5);
         }
 
         public override void OnGUI(Rect rect)
         {
-            List<string> list = ConsoleManager.Instence.NowConsoleStyle.LogGroupCollection;
-
-            IsSingleLog = EditorGUILayout.BeginToggleGroup("Single Log Group", IsSingleLog);
-
+            ConsoleManager.Instence.UseSingleGroup = EditorGUILayout.BeginToggleGroup("Single Log Group", ConsoleManager.Instence.UseSingleGroup);
+            singleLogIndex = EditorGUILayout.IntPopup(singleLogIndex, groupList.ToArray(), null);
+            ConsoleManager.Instence.SingleGroup = groupList[singleLogIndex];
             EditorGUILayout.EndToggleGroup();
 
-            NotSingleLog = !EditorGUILayout.BeginToggleGroup("Log Group", NotSingleLog);
-            foreach (var item in list)
+            ConsoleManager.Instence.UseSingleGroup = !EditorGUILayout.BeginToggleGroup("Log Group", !ConsoleManager.Instence.UseSingleGroup);
+            foreach (var item in groupList)
             {
                 ConsoleManager.Instence.LogGroupLogCollection[item] = EditorGUILayout.Toggle(item, ConsoleManager.Instence.LogGroupLogCollection[item]);
             }
@@ -957,10 +951,13 @@ namespace ConsoleTiny
 
         public override void OnOpen()
         {
+            groupList = ConsoleManager.Instence.NowConsoleStyle.LogGroupCollection;
+            singleLogIndex = groupList.IndexOf(ConsoleManager.Instence.SingleGroup);
         }
 
         public override void OnClose()
         {
+
         }
     }
 }

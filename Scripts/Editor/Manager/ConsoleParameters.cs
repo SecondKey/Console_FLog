@@ -84,20 +84,8 @@ namespace ConsoleTiny
         #endregion
 
 
-        #region Color
-        public static string colorNamespace, colorNamespaceAlpha;
-        public static string colorClass, colorClassAlpha;
-        public static string colorMethod, colorMethodAlpha;
-        public static string colorParameters, colorParametersAlpha;
-        public static string colorPath, colorPathAlpha;
-        public static string colorFilename, colorFilenameAlpha;
-        #endregion
-
 
         #region Icon
-        public static Texture2D iconInfo;
-        public static Texture2D iconWarn;
-        public static Texture2D iconError;
         public static Texture2D iconInfoSmall;
         public static Texture2D iconWarnSmall;
         public static Texture2D iconErrorSmall;

@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace ConsoleTiny
 {
-    public static class CLog
+    public static class FLog
     {
         #region TMP
         public static void Log(string logText)

@@ -217,6 +217,26 @@ namespace ConsoleTiny
         }
 
         /// <summary>
+        /// 检查是否初始化
+        /// </summary>
+        private void CheckInit()
+        {
+            if (m_Init)//如果已经初始胡
+            {
+                return;//直接返回
+            }
+
+            m_Init = true;//设置已经初始化
+            m_ConsoleFlagsComing = EditorPrefs.GetInt(kPrefConsoleFlags, 896);//设置稍后需要修改的控制台特性标识
+            m_ShowTimestamp = EditorPrefs.GetBool(kPrefShowTimestamp, false);//设置是否显示时间
+            m_Collapse = EditorPrefs.GetBool(kPrefCollapse, false);//设置是否折叠
+            m_WrapperInfos.Clear();//清空所有信息
+            m_WrapperInfos.AddRange(EditorPrefs.GetString(kPrefWrappers, string.Empty).Split('\n'));//获取包装信息
+            m_CustomFilters.Load();//加载自定义过滤器
+        }
+
+
+        /// <summary>
         /// 设置枚举值
         /// </summary>
         /// <param name="flags"></param>
@@ -484,10 +504,10 @@ namespace ConsoleTiny
                 searchStringValue = m_SearchString.ToLower();
                 searchStringLen = searchStringValue.Length;
             }
-
             // 没有将堆栈都进行搜索，以免信息太杂，只根据行数，但是变化行数时不会重新搜索
-            if (HasFlag((int)entryInfo.flags) && m_CustomFilters.HasFilters(entryInfo.lower) && (!hasSearchString ||
-                  (entryInfo.searchIndex = entryInfo.lower.IndexOf(searchStringValue, StringComparison.Ordinal)) != -1))
+            if (HasFlag((int)entryInfo.flags)
+                && m_CustomFilters.HasFilters(entryInfo.lower)
+                && (!hasSearchString || (entryInfo.searchIndex = entryInfo.lower.IndexOf(searchStringValue, StringComparison.Ordinal)) != -1))
             {
                 SearchIndexToTagIndex(entryInfo, searchStringLen);
                 m_FilteredInfos.Add(entryInfo);
@@ -507,25 +527,6 @@ namespace ConsoleTiny
             }
         }
 
-
-        /// <summary>
-        /// 检查是否初始化
-        /// </summary>
-        private void CheckInit()
-        {
-            if (m_Init)//如果已经初始胡
-            {
-                return;//直接返回
-            }
-
-            m_Init = true;//设置已经初始化
-            m_ConsoleFlagsComing = EditorPrefs.GetInt(kPrefConsoleFlags, 896);//设置稍后需要修改的控制台特性标识
-            m_ShowTimestamp = EditorPrefs.GetBool(kPrefShowTimestamp, false);//设置是否显示时间
-            m_Collapse = EditorPrefs.GetBool(kPrefCollapse, false);//设置是否折叠
-            m_WrapperInfos.Clear();//清空所有信息
-            m_WrapperInfos.AddRange(EditorPrefs.GetString(kPrefWrappers, string.Empty).Split('\n'));//获取包装信息
-            m_CustomFilters.Load();//加载自定义过滤器
-        }
 
         /// <summary>
         /// 检查选择字符串是否发生改变

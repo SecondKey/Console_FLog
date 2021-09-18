@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ConsoleConfig>
+  <NowChoiseLogStyle>DefaultStyle</NowChoiseLogStyle>
+
+  <LogType>
+    <Single>
+      <UseSingle>false</UseSingle>
+      <Single>Log</Single>
+    </Single>
+    <Multi>
+      <Log>true</Log>
+      <MainParameter>true</MainParameter>
+      <Examine>true</Examine>
+      <Warning>true</Warning>
+      <Error>true</Error>
+      <Assert>true</Assert>
+      <Disastrous>true</Disastrous>
+    </Multi>
+  </LogType>
+
+  <LogGroup>
+    <Single>
+      <UseSingle>false</UseSingle>
+      <Single>System</Single>
+    </Single>
+    <Multi>
+      <System>true</System>
+      <TMP>true</TMP>
+      <IOC>true</IOC>
+    </Multi>
+  </LogGroup>
+
+</ConsoleConfig>

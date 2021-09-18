@@ -13,11 +13,7 @@ namespace ConsoleTiny
     {
         #region Instence
         private static ConsoleManager instence;
-        private ConsoleManager()
-        {
-            LoadStyle();
-            LoadConfig();
-        }
+        private ConsoleManager() { }
 
 
         public static ConsoleManager Instence
@@ -32,9 +28,9 @@ namespace ConsoleTiny
                 {
                     instence.LoadStyle();
                 }
-                if (!instence.optionLoadAlready)
+                if (!instence.configLoadAlready)
                 {
-                    instence.LoadOptions();
+                    instence.LoadConfig();
                 }
                 if (instence.NowLogStyle.check == null)
                 {
@@ -43,30 +39,29 @@ namespace ConsoleTiny
                 return instence;
             }
         }
-        #endregion
-
-        #region Options
-        bool optionLoadAlready;
-
-        XDocument optionXml;
-
-        public void LoadOptions()
+        /// <summary>
+        /// 防止Instence死循环
+        /// </summary>
+        /// <returns></returns>
+        public static ConsoleManager GetInstenceWithoutCheck()
         {
-            optionLoadAlready = true;
-
-            optionXml = XDocument.Load(ConsoleTinyPath + "/Options/Option.xml");
-            XElement root = optionXml.Root;
-
-            ChangeLogStyle(root.Element("Style").Element("NowChoiseLogStyle").Value);
+            if (instence == null)
+            {
+                instence = new ConsoleManager();
+            }
+            return instence;
         }
         #endregion
 
         #region Style
         bool styleLoadAlready;
+        bool configLoadAlready;
 
+        Dictionary<string, ConsoelConfig> ConsoleConfigList;
         Dictionary<string, ConsoleStyle> ConsoleStyleList;
         Dictionary<string, LogStyle> LogStyleList;
 
+        public ConsoelConfig NowConsoleConfig { get; private set; }
         public ConsoleStyle NowConsoleStyle { get; private set; }
         public LogStyle NowLogStyle { get; private set; }
 
@@ -88,6 +83,37 @@ namespace ConsoleTiny
             styleLoadAlready = true;
         }
 
+        public void LoadConfig()
+        {
+            configLoadAlready = true;
+            NowConsoleConfig = new ConsoelConfig(ConsoleTinyPath);
+
+            GUIStyle messageStyle = new GUIStyle("CN Message");
+            messageStyle.onNormal.textColor = messageStyle.active.textColor;
+            messageStyle.padding.top = 0;
+            messageStyle.padding.bottom = 0;
+            var selectedStyle = new GUIStyle("MeTransitionSelect");
+            messageStyle.onNormal.background = selectedStyle.normal.background;
+
+
+            iconInfoSmall = EditorGUIUtility.LoadIcon("console.infoicon.sml");
+            iconWarnSmall = EditorGUIUtility.LoadIcon("console.warnicon.sml");
+            iconErrorSmall = EditorGUIUtility.LoadIcon("console.erroricon.sml");
+            iconFirstErrorSmall = EditorGUIUtility.LoadIcon("sv_icon_dot14_sml");
+
+            iconInfoMono = EditorGUIUtility.LoadIcon("console.infoicon.sml");
+            iconWarnMono = EditorGUIUtility.LoadIcon("console.warnicon.inactive.sml");
+            iconErrorMono = EditorGUIUtility.LoadIcon("console.erroricon.inactive.sml");
+            iconFirstErrorMono = EditorGUIUtility.LoadIcon("sv_icon_dot8_sml");
+            iconCustomFiltersMono = EditorGUIUtility.LoadIcon("sv_icon_dot0_sml");
+
+            iconCustomFiltersSmalls = new Texture2D[7];
+            for (int i = 0; i < 7; i++)
+            {
+                iconCustomFiltersSmalls[i] = EditorGUIUtility.LoadIcon("sv_icon_dot" + (i + 1) + "_sml");
+            }
+        }
+
         private void ChangeConsoleStyle(string consoleStyleName)
         {
             if (NowConsoleStyle != null && NowConsoleStyle.StyleName == consoleStyleName)
@@ -106,7 +132,6 @@ namespace ConsoleTiny
         {
             if (NowLogStyle != null && NowLogStyle.StyleName == logStyleName)
                 return;
-
             if (LogStyleList.ContainsKey(logStyleName))
             {
                 NowLogStyle = LogStyleList[logStyleName];
@@ -121,92 +146,37 @@ namespace ConsoleTiny
 
         #endregion
 
-        public void LoadConfig()
+
+        #region Log
+        public bool UseSingleType
         {
-            GUIStyle messageStyle = new GUIStyle("CN Message");
-            messageStyle.onNormal.textColor = messageStyle.active.textColor;
-            messageStyle.padding.top = 0;
-            messageStyle.padding.bottom = 0;
-            var selectedStyle = new GUIStyle("MeTransitionSelect");
-            messageStyle.onNormal.background = selectedStyle.normal.background;
-
-
-            iconInfo = EditorGUIUtility.LoadIcon("console.infoicon");
-            iconWarn = EditorGUIUtility.LoadIcon("console.warnicon");
-            iconError = EditorGUIUtility.LoadIcon("console.erroricon");
-            iconInfoSmall = EditorGUIUtility.LoadIcon("console.infoicon.sml");
-            iconWarnSmall = EditorGUIUtility.LoadIcon("console.warnicon.sml");
-            iconErrorSmall = EditorGUIUtility.LoadIcon("console.erroricon.sml");
-            iconFirstErrorSmall = EditorGUIUtility.LoadIcon("sv_icon_dot14_sml");
-
-            iconInfoMono = EditorGUIUtility.LoadIcon("console.infoicon.sml");
-            iconWarnMono = EditorGUIUtility.LoadIcon("console.warnicon.inactive.sml");
-            iconErrorMono = EditorGUIUtility.LoadIcon("console.erroricon.inactive.sml");
-            iconFirstErrorMono = EditorGUIUtility.LoadIcon("sv_icon_dot8_sml");
-            iconCustomFiltersMono = EditorGUIUtility.LoadIcon("sv_icon_dot0_sml");
-
-            iconCustomFiltersSmalls = new Texture2D[7];
-            for (int i = 0; i < 7; i++)
-            {
-                iconCustomFiltersSmalls[i] = EditorGUIUtility.LoadIcon("sv_icon_dot" + (i + 1) + "_sml");
-            }
-
-            bool isProSkin = EditorGUIUtility.isProSkin;
-            colorNamespace = isProSkin ? "6A87A7" : "66677E";
-            colorClass = isProSkin ? "1A7ECD" : "0072A0";
-            colorMethod = isProSkin ? "0D9DDC" : "335B89";
-            colorParameters = isProSkin ? "4F7F9F" : "4C5B72";
-            colorPath = isProSkin ? "375E68" : "7F8B90";
-            colorFilename = isProSkin ? "4A6E8A" : "6285A1";
-            colorNamespaceAlpha = isProSkin ? "4E5B6A" : "87878F";
-            colorClassAlpha = isProSkin ? "2A577B" : "628B9B";
-            colorMethodAlpha = isProSkin ? "246581" : "748393";
-            colorParametersAlpha = isProSkin ? "425766" : "7D838B";
-            colorPathAlpha = isProSkin ? "375860" : "8E989D";
-            colorFilenameAlpha = isProSkin ? "4A6E8A" : "6285A1";
-
+            get { return NowConsoleConfig.UseSingleType; }
+            set { NowConsoleConfig.UseSingleType = value; }
+        }
+        public string SingleType
+        {
+            get { return NowConsoleConfig.SingleType; }
+            set { NowConsoleConfig.SingleType = value; }
         }
 
 
-        #region Log
-        Dictionary<string, bool> logTypeLogCollection;
-        Dictionary<string, bool> logGroupLogCollection;
-
+        public bool UseSingleGroup
+        {
+            get { return NowConsoleConfig.UseSingleGroup; }
+            set { NowConsoleConfig.UseSingleGroup = value; }
+        }
+        public string SingleGroup
+        {
+            get { return NowConsoleConfig.SingleGroup; }
+            set { NowConsoleConfig.SingleGroup = value; }
+        }
         public Dictionary<string, bool> LogTypeLogCollection
         {
-            get
-            {
-                if (logTypeLogCollection == null)
-                {
-                    logTypeLogCollection = new Dictionary<string, bool>();
-                    if (logTypeLogCollection.Count == 0 && NowConsoleStyle != null)
-                    {
-                        foreach (string item in NowConsoleStyle.LogTypeCollection)
-                        {
-                            logTypeLogCollection.Add(item, true);
-                        }
-                    }
-                }
-                return logTypeLogCollection;
-            }
+            get { return NowConsoleConfig.LogTypeActiveCollection; }
         }
         public Dictionary<string, bool> LogGroupLogCollection
         {
-            get
-            {
-                if (logGroupLogCollection == null)
-                {
-                    logGroupLogCollection = new Dictionary<string, bool>();
-                    if (logGroupLogCollection.Count == 0 && NowConsoleStyle != null)
-                    {
-                        foreach (string item in NowConsoleStyle.LogGroupCollection)
-                        {
-                            logGroupLogCollection.Add(item, true);
-                        }
-                    }
-                }
-                return logGroupLogCollection;
-            }
+            get { return NowConsoleConfig.LogGroupActiveCollection; }
         }
         #endregion 
 
